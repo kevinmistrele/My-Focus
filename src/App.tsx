@@ -25,6 +25,7 @@ export default function App() {
                 pomodoroWorkTime: 25,
                 pomodoroBreakTime: 5,
                 pomodoroLongBreakTime: 15,
+                theme: "dark",
             },
         })
     }
@@ -39,13 +40,19 @@ export default function App() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background flex">
+            {/* Sidebar */}
+            <Sidebar isOpen={sidebarOpen} currentPath={currentPath} onNavigate={handleNavigate} user={user} />
+
+            {/* Main Content Area */}
+            <div
+                className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
+                    sidebarOpen ? "lg:ml-0" : "lg:ml-0"
+                }`}
+            >
             <Header user={user} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-            <div className="flex">
-                <Sidebar isOpen={sidebarOpen} currentPath={currentPath} onNavigate={handleNavigate} user={user} />
-
-                <main className="flex-1 p-6 lg:ml-0">
+                <main className="flex-1 p-6">
                     <div className="max-w-7xl mx-auto">
                         <Router currentPath={currentPath} onNavigate={handleNavigate} user={user} />
                     </div>
