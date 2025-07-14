@@ -4,7 +4,8 @@ module.exports = {
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/styles/global.css"
+        "./src/styles/global.css",
+        "*.{js,ts,jsx,tsx,mdx}"
     ],
     theme: {
         extend: {

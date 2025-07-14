@@ -1,28 +1,16 @@
 import type React from "react"
-import { cn } from "../../lib/utils"
+import type { CardProps } from "../../types/ui"
 
-interface CardProps {
-    children: React.ReactNode
-    className?: string
-    variant?: "default" | "glass"
-    padding?: "sm" | "md" | "lg"
-}
+export const Card: React.FC<CardProps> = ({ children, className = "", padding = "md" }) => {
+  const baseClasses = "bg-white rounded-lg shadow border border-gray-200"
 
-const cardVariants = {
-    default: "bg-surface border border-custom",
-    glass: "glass-effect",
-}
-
-const cardPadding = {
+  const paddingClasses = {
     sm: "p-4",
     md: "p-6",
     lg: "p-8",
-}
+  }
 
-export const Card: React.FC<CardProps> = ({ children, className, variant = "default", padding = "md" }) => {
-    return (
-        <div className={cn("rounded-xl shadow-lg animate-fade-in", cardVariants[variant], cardPadding[padding], className)}>
-            {children}
-        </div>
-    )
+  const classes = [baseClasses, paddingClasses[padding], className].filter(Boolean).join(" ")
+
+  return <div className={classes}>{children}</div>
 }

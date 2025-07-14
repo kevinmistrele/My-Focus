@@ -1,39 +1,46 @@
+"use client"
+
 import type React from "react"
-import { cn } from "../../lib/utils"
-import type { InputVariant } from "../../lib/types"
+import type { InputProps } from "../../types/ui"
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    variant?: InputVariant
-    label?: string
-    error?: string
-    icon?: React.ReactNode
-}
+export const Input: React.FC<InputProps> = ({
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  disabled = false,
+  error,
+  label,
+  required = false,
+  className = "",
+}) => {
+  const baseClasses = "block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 sm:text-sm"
+  const normalClasses = "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+  const errorClasses = "border-red-300 focus:ring-red-500 focus:border-red-500"
+  const disabledClasses = "bg-gray-50 text-gray-500 cursor-not-allowed"
 
-const inputVariants = {
-    default: "border-custom focus:border-primary",
-    error: "border-red-500 focus:border-red-500",
-    success: "border-green-500 focus:border-green-500",
-}
+  const inputClasses = [baseClasses, error ? errorClasses : normalClasses, disabled && disabledClasses, className]
+    .filter(Boolean)
+    .join(" ")
 
-export const Input: React.FC<InputProps> = ({ variant = "default", label, error, icon, className, ...props }) => {
-    return (
-        <div className="w-full">
-            {label && <label className="block text-sm font-medium text-secondary mb-2">{label}</label>}
-            <div className="relative">
-                {icon && (
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">{icon}</div>
-                )}
-                <input
-                    className={cn(
-                        "w-full px-3 py-2 bg-surface text-primary rounded-lg border transition-colors duration-200 focus-ring",
-                        icon && "pl-10",
-                        inputVariants[variant],
-                        className,
-                    )}
-                    {...props}
-                />
-            </div>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
-    )
+  return (
+    <div className="space-y-1">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        required={required}
+        className={inputClasses}
+      />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </div>
+  )
 }
