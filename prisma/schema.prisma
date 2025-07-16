@@ -13,3 +13,119 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum SessionType {
+  work
+  break
+  longBreak
+}
+
+enum UserType {
+  admin
+  user
+}
+
+enum ActivityType {
+  user
+  task
+  pomodoro
+  system
+}
+
+model User {
+  id            String             @id @default(uuid())
+  name          String
+  email         String             @unique
+  avatar        String?
+  type          UserType           @default(user)
+  createdAt     DateTime           @default(now())
+  lastLogin     DateTime?
+  // Relação opcional 1-1 para Preferences
+  preferences   Preferences?
+  // Relações 1-N
+  tasks         Task[]             @relation("UserTasks")
+  sessions      PomodoroSession[]  @relation("UserSessions")
+  goals         Goal[]             @relation("UserGoals")
+  habits        Habit[]            @relation("UserHabits")
+  activityLogs  ActivityLog[]      @relation("UserLogs")
+}
+
+model Preferences {
+  id               String   @id @default(uuid())
+  language         String   @default("pt-BR")
+  pomodoroEnd      Boolean  @default(true)
+  taskReminders    Boolean  @default(true)
+  dailyGoals       Boolean  @default(false)
+  weeklyReports    Boolean  @default(true)
+  startWeekOn      String   @default("monday")
+  timeFormat       String   @default("24h")
+  autoStartBreaks  Boolean  @default(false)
+  soundEnabled     Boolean  @default(true)
+  // Chave estrangeira para o usuário
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String   @unique
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  priority    Priority  @default(medium)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tags        String[]  @default([])
+  user        User      @relation("UserTasks", fields: [userId], references: [id])
+  userId      String
+}
+
+model PomodoroSession {
+  id         String       @id @default(uuid())
+  duration   Int
+  type       SessionType
+  startTime  DateTime
+  endTime    DateTime?
+  completed  Boolean      @default(false)
+  user       User         @relation("UserSessions", fields: [userId], references: [id])
+  userId     String
+}
+
+model Goal {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  user        User      @relation("UserGoals", fields: [userId], references: [id])
+  userId      String
+}
+
+model Habit {
+  id             String    @id @default(uuid())
+  name           String
+  description    String
+  weeklyProgress Int       @default(0)
+  color          String
+  createdAt      DateTime  @default(now())
+  user           User      @relation("UserHabits", fields: [userId], references: [id])
+  userId         String
+}
+
+model ActivityLog {
+  id        String       @id @default(uuid())
+  user      User         @relation("UserLogs", fields: [userId], references: [id])
+  userId    String
+  userName  String
+  action    String
+  details   String
+  timestamp DateTime     @default(now())
+  type      ActivityType
+}
