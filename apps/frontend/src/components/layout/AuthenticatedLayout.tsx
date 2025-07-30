@@ -1,4 +1,3 @@
-// src/components/layout/AuthenticatedLayout.tsx
 import { Header } from "../layout/Header"
 import { Sidebar } from "../layout/Sidebar"
 import { Router } from "../Router"

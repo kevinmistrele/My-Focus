@@ -14,7 +14,6 @@ const router = Router();
 
 router.use(verifyToken);
 
-// ROTAS DE USUÁRIO LOGADO PRIMEIRO (sem requireAdmin)
 router.get("/me", getMe)
 router.put("/me", updateMe)
 router.delete("/me", deleteMe)
@@ -22,7 +21,6 @@ router.put("/me/password", changePassword);
 router.get("/me/stats", requireUser, getUserStats);
 
 
-// ROTAS ADMIN ABAIXO
 router.get("/", requireAdmin, getAllUsers)
 router.get("/:id", requireAdmin, getUserById)
 router.post("/", requireAdmin, createUser)

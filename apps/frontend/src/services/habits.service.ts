@@ -25,9 +25,9 @@ export interface HabitSummary {
 }
 
 export const HabitService = {
-    getAll: (): Promise<Habit[]> => api.get("/habits"),
+    getAll: (): Promise<Habit[] | null> => api.get("/habits"),
 
-    getTodaySummary: (): Promise<HabitSummary> => {
+    getTodaySummary: (): Promise<HabitSummary | null> => {
         return api.get("/habits/today-summary");
     },
 

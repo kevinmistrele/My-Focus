@@ -42,7 +42,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
                 description: goal.description,
                 type: goal.type,
                 category: goal.category,
-                targetDate: goal.targetDate.toISOString().split("T")[0],
+                targetDate: goal.targetDate ? goal.targetDate.toISOString().split("T")[0] : "",
             })
         } else {
             setFormData({

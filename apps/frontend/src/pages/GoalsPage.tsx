@@ -25,8 +25,7 @@ export const GoalsPage: React.FC = () => {
             const parsed: Goal[] = Array.isArray(res)
                 ? res
                     .filter((goal) => goal && goal.targetDate)
-                    .map((goal, index) => {
-                        console.log(`Meta #${index}:`, goal)
+                    .map((goal) => {
                         return {
                             ...goal,
                             targetDate: goal?.targetDate ? new Date(goal.targetDate) : null,
@@ -34,8 +33,6 @@ export const GoalsPage: React.FC = () => {
                         }
                     })
                 : []
-
-            console.log("Metas parseadas:", parsed)
             setGoals(parsed)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
@@ -50,7 +47,7 @@ export const GoalsPage: React.FC = () => {
 
     const handleProgressChange = async (goalId: string, newProgress: number) => {
         try {
-            const updated = await GoalService.update(goalId, { progress: newProgress })
+            await GoalService.update(goalId, { progress: newProgress })
             setGoals((prev) =>
                 prev.map((g) =>
                     g.id === goalId ? { ...g, progress: newProgress } : g
@@ -69,18 +66,21 @@ export const GoalsPage: React.FC = () => {
     const handleSaveGoal = async (goalData: Goal) => {
         try {
             if (editingGoal) {
-                const updated = await GoalService.update(goalData.id, goalData)
+                const updated = await GoalService.update(goalData.id, {
+                    ...goalData,
+                    targetDate: goalData.targetDate?.toISOString().split("T")[0] ?? "",
+                })
                 setGoals((prev) =>
                     prev.map((g) => (g.id === goalData.id ? { ...updated.data, targetDate: new Date(updated.data.targetDate) } : g))
                 )
                 toast.success("Meta atualizada com sucesso!")
             } else {
-                const created = await GoalService.create(goalData)
-                const goal = created.data
+                await GoalService.create({
+                    ...goalData,
+                    targetDate: goalData.targetDate?.toISOString().split("T")[0] ?? "",
+                })
                 await fetchGoals()
                 toast.success("Meta criada com sucesso!")
-
-
             }
         } catch (err) {
             toast.error("Erro ao salvar meta.")

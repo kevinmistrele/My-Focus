@@ -1,19 +1,18 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import {MoodLog} from "@prisma/client";
+import {prisma} from "../prisma/client";
 
 export const getMoods = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
-    // Últimos 7 registros de humor
     const moods = await prisma.moodLog.findMany({
         where: { userId },
         orderBy: { date: "desc" },
         take: 7,
     });
 
-    // Últimos 7 dias (para estatísticas)
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // inclui hoje
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
     const lastWeekEntries = await prisma.moodLog.findMany({
         where: {
@@ -26,11 +25,12 @@ export const getMoods = async (req: Request, res: Response) => {
     });
 
     const stats = {
-        happy: lastWeekEntries.filter((m) => m.mood === "happy").length,
-        neutral: lastWeekEntries.filter((m) => m.mood === "neutral").length,
-        sad: lastWeekEntries.filter((m) => m.mood === "sad").length,
+        happy: lastWeekEntries.filter((m: MoodLog) => m.mood === "happy").length,
+        neutral: lastWeekEntries.filter((m: MoodLog) => m.mood === "neutral").length,
+        sad: lastWeekEntries.filter((m: MoodLog) => m.mood === "sad").length,
         total: lastWeekEntries.length,
     };
+
 
     res.json({ moods, stats });
 };

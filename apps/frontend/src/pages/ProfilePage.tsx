@@ -17,8 +17,6 @@ export const ProfilePage: React.FC = () => {
     const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "" })
     const [isEditing, setIsEditing] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
-
-    // Estados para os novos modais
     const [showTermsModal, setShowTermsModal] = useState(false)
     const [showPrivacyModal, setShowPrivacyModal] = useState(false)
     const [showLGPDModal, setShowLGPDModal] = useState(false)
@@ -118,7 +116,7 @@ export const ProfilePage: React.FC = () => {
                                     <span className="text-2xl font-bold text-white">
                     {user.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")
                         .toUpperCase()}
                   </span>

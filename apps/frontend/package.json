@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "../../node_modules/.bin/tsc -b && vite build",
-    "lint": "../../node_modules/.bin/eslint .",
-    "start": "../../node_modules/.bin/next start",
-    "preview": "../../node_modules/.bin/vite preview"
+    "dev": "vite --mode frontend",
+    "build": "tsc -b && vite build --mode frontend",
+    "lint": "eslint .",
+    "start": "vite preview --mode frontend",
+    "prod": "npm run build && npm run start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -44,7 +44,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
     "cmdk": "1.0.4",
-    "date-fns": "4.1.0",
+    "date-fns": "^2.30.0",
     "embla-carousel-react": "8.5.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",

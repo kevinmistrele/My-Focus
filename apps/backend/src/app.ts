@@ -1,4 +1,3 @@
-// src/app.ts
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -24,8 +23,6 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// monta as rotas
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/pomodoros", pomodoroRoutes);
@@ -38,7 +35,6 @@ app.use("/activities", activityRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes)
 
-// 404 + handler
 app.use(notFound);
 app.use(errorHandler);
 

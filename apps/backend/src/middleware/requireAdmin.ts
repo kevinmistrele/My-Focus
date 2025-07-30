@@ -1,6 +1,5 @@
-// src/middleware/requireAdmin.ts
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).userId;

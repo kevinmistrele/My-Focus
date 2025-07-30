@@ -5,7 +5,7 @@ async function request<T = any>(
     endpoint: string,
     data?: any,
     customHeaders?: Record<string, string>
-): Promise<T> {
+): Promise<T | null> {
     const token = localStorage.getItem("token");
 
     const headers: HeadersInit = {

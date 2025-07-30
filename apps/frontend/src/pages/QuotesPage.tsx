@@ -24,8 +24,6 @@ export const QuotesPage: React.FC = () => {
     const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
     const [editForm, setEditForm] = useState({ text: "", author: "" })
 
-
-    // Frases do sistema
     const systemQuotes: Quote[] = [
         {
             id: "sys1",
@@ -51,6 +49,7 @@ export const QuotesPage: React.FC = () => {
     const loadQuotes = async () => {
         try {
             const res = await QuotesService.getAll()
+            if (!res) return
             setQuotes(res)
 
             const today = new Date().toDateString()

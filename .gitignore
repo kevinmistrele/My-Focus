@@ -1,4 +1,6 @@
+# -------------------------
 # Logs
+# -------------------------
 logs
 *.log
 npm-debug.log*
@@ -7,20 +9,55 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# -------------------------
+# System
+# -------------------------
+.DS_Store
+Thumbs.db
 
-# Editor directories and files
+# -------------------------
+# Node.js
+# -------------------------
+node_modules/
+**/node_modules/
+
+# -------------------------
+# Builds
+# -------------------------
+dist/
+dist-ssr/
+**/dist/
+*.local
+*.tsbuildinfo
+
+# -------------------------
+# Environment files
+# -------------------------
+.env
+.env.*
+!.env.example
+apps/**/.env
+apps/**/.env.*
+
+# -------------------------
+# IDEs & editors
+# -------------------------
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.env
+
+# -------------------------
+# Prisma (generated)
+# -------------------------
 apps/backend/src/generated/
+
+# -------------------------
+# Build outputs (e.g. Vite, Next, etc.)
+# -------------------------
+frontend/public/build/
+frontend/.vite/

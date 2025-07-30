@@ -13,7 +13,7 @@ import { toast } from "sonner"
 
 export const NotesPage: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [, setIsLoading] = useState(true)
 
 
     const [searchTerm, setSearchTerm] = useState("")
@@ -25,6 +25,7 @@ export const NotesPage: React.FC = () => {
         const fetchNotes = async () => {
             try {
                 const res = await NoteService.getAll()
+                if (!res) return
                 const parsed = res.map(note => ({
                     ...note,
                     createdAt: new Date(note.createdAt),
@@ -205,7 +206,6 @@ export const NotesPage: React.FC = () => {
     )
 }
 
-// Note Card Component
 interface NoteCardProps {
     note: Note
     onUpdate: (id: string, updates: Partial<Note>) => void

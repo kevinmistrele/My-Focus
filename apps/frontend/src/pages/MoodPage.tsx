@@ -46,6 +46,7 @@ export const MoodPage: React.FC = () => {
     const loadMoodEntries = async () => {
         try {
             const res = await MoodService.getAll()
+            if (!res) return
             setMoodEntries(res.moods)
             setStats(res.stats)
 

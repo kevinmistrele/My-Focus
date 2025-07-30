@@ -1,10 +1,8 @@
-// src/middleware/requireUser.ts
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import * as jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
-
+import { JWT_SECRET } from "../config";
 export const requireUser = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 

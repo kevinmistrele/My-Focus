@@ -36,16 +36,13 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ token, onS
     }
 
 
-    // Simulate token validation
     React.useEffect(() => {
         if (!token) {
             setIsTokenValid(false)
             return
         }
 
-        // Simulate API call to validate token
         setTimeout(() => {
-            // For demo purposes, consider token valid if it's not empty
             setIsTokenValid(token.length > 0)
         }, 1000)
     }, [token])
@@ -91,8 +88,6 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ token, onS
         }
     }
 
-
-    // Invalid token state
     if (!isTokenValid) {
         return (
             <div className="min-h-screen bg-background relative overflow-hidden">

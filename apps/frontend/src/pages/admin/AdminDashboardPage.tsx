@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Card } from "../../components/ui/Card"
 import {AdminService} from "../../services/admin.service.ts";
-import type {Activity, AdminStats} from "../../lib/types.ts";
+import type {AdminStats} from "../../lib/types.ts";
 import {formatDistanceToNow} from "date-fns";
 import {ptBR} from "date-fns/locale";
 
@@ -29,9 +29,8 @@ export const AdminDashboardPage: React.FC<{ onNavigate: (path: string) => void }
         const fetchStats = async () => {
             try {
                 const data = await AdminService.getStats()
+                if (!data) return
                 setStats(data)
-            } catch (err) {
-                console.error("Erro ao buscar estatísticas:", err)
             } finally {
                 setIsLoading(false)
             }

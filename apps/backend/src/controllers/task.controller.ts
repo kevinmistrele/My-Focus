@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import { logActivity } from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import {$Enums, Task} from "@prisma/client";
 
 export const getAllTasks = async (req: Request, res: Response) => {
     const user = (req as any).user;
@@ -56,9 +56,12 @@ export const getTodayTaskSummary = async (req: Request, res: Response) => {
         take: 3,
     })
 
-    const completed = tasks.filter((t) => t.completed).length
+    const completed = tasks.filter((t: Task) => t.completed).length;
     const total = tasks.length
-    const pomodoros = tasks.reduce((sum, t) => sum + (t.pomodoros || 0), 0)
+    const pomodoros = tasks.reduce(
+        (sum: number, t: Task) => sum + (t.pomodoros || 0),
+        0
+    );
     const focusedMinutes = pomodoros * 25
 
     res.json({
@@ -76,7 +79,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     const task = await prisma.task.findFirst({
         where: {
             id: req.params.id,
-            userId: user.id, // garante que o user só pegue a própria
+            userId: user.id,
         },
     });
 
@@ -87,8 +90,6 @@ export const getTaskById = async (req: Request, res: Response) => {
 export const createTask = async (req: Request, res: Response) => {
     const { title, description, dueDate, priority, tags } = req.body;
     const user = (req as any).user;
-
-    console.log("✅ Usuário autenticado:", user);
 
     if (!user || !user.id) {
         return res.status(401).json({ error: "Usuário não autenticado" });

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { logActivity } from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import { $Enums } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
-import {prisma} from "../../prisma/client";
+import {prisma} from "../prisma/client";
 
 export const getAllUsers = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1
@@ -138,10 +138,8 @@ export const getUserStats = async (req: Request, res: Response) => {
         const [tasksCompleted, pomodoroSessions, totalFocusTimeRaw] = await Promise.all([
             prisma.task.count({ where: { userId, completed: true } }),
 
-            // Agora conta TODAS as sessões (sem filtro de tipo ou completed)
             prisma.pomodoroSession.count({ where: { userId } }),
 
-            // Soma a duração de TODAS as sessões
             prisma.pomodoroSession.aggregate({
                 _sum: { duration: true },
                 where: { userId },
@@ -162,7 +160,6 @@ export const getUserStats = async (req: Request, res: Response) => {
             streak: user?.loginStreak ?? 0,
         });
     } catch (err) {
-        console.error("Erro ao buscar estatísticas do usuário:", err);
         return res.status(500).json({ error: "Erro ao buscar estatísticas" });
     }
 };

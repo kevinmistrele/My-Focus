@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import { logActivity } from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import { $Enums } from "@prisma/client";
 
 export const getGoalsByUser = async (req: Request, res: Response) => {
     const user = (req as any).user;
@@ -26,7 +26,6 @@ export const createGoal = async (req: Request, res: Response) => {
         completed = false,
     } = req.body;
 
-    // Verificar quantas metas o usuário já tem
     const existingGoalsCount = await prisma.goal.count({
         where: { userId: user.id },
     });

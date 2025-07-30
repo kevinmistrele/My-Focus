@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import {logActivity} from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import { $Enums } from "@prisma/client";
 import {isSameDay, startOfDay, subDays} from "date-fns";
 import {sendResetPasswordEmail} from "../services/emailService";
 
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
-
+import { JWT_SECRET } from "../config";
 export const register = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
 
@@ -49,9 +48,9 @@ export const login = async (req: Request, res: Response) => {
     let newStreak = 1
     if (lastStreakDate) {
         if (isSameDay(lastStreakDate, today)) {
-            newStreak = user.loginStreak // já contou hoje
+            newStreak = user.loginStreak
         } else if (isSameDay(lastStreakDate, yesterday)) {
-            newStreak = user.loginStreak + 1 // manteve streak
+            newStreak = user.loginStreak + 1
         }
     }
 

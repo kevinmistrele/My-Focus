@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import * as jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
+import { JWT_SECRET } from "../config";
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;

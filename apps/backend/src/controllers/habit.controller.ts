@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import { logActivity } from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import {$Enums, Habit, HabitCheckin} from "@prisma/client";
 import { startOfDay, endOfDay } from 'date-fns'
 
 
@@ -27,10 +27,11 @@ export const getHabitsByUser = async (req: Request, res: Response) => {
         orderBy: { createdAt: 'desc' },
     });
 
-    const transformed = habits.map(habit => ({
+    const transformed = habits.map((habit: Habit & { checkins: HabitCheckin[] }) => ({
         ...habit,
         completedToday: habit.checkins.length > 0,
     }));
+
 
     res.json(transformed);
 };
@@ -54,15 +55,16 @@ export const getTodayHabitSummary = async (req: Request, res: Response) => {
         },
     })
 
-    const todayHabits = habits.map((habit) => ({
+    const todayHabits = habits.map((habit: Habit & { checkins: HabitCheckin[] }) => ({
         ...habit,
         completedToday: habit.checkins.length > 0,
-    }))
+    }));
 
-    const completed = todayHabits.filter((h) => h.completedToday).length
+
+    const completed = todayHabits.filter((h: { completedToday: boolean }) => h.completedToday).length;
     const total = todayHabits.length
     const weeklyGoal = total > 0 ? Math.floor((completed / total) * 100) : 0
-    const streak = 0 // Aqui futuramente você pode calcular baseado em check-ins sequenciais
+    const streak = 0
 
     res.json({
         streak,
@@ -132,7 +134,6 @@ export const checkinHabit = async (req: Request, res: Response) => {
     const habitId = req.params.id
     const today = new Date()
 
-    // Verifica se já tem check-in hoje
     const existingCheckin = await prisma.habitCheckin.findFirst({
         where: {
             habitId,
@@ -145,7 +146,6 @@ export const checkinHabit = async (req: Request, res: Response) => {
     })
 
     if (existingCheckin) {
-        // Uncheck: remove o checkin de hoje
         await prisma.habitCheckin.delete({
             where: {
                 habitId_date: {
@@ -155,7 +155,6 @@ export const checkinHabit = async (req: Request, res: Response) => {
             },
         })
     } else {
-        // Check: cria checkin
         await prisma.habitCheckin.create({
             data: {
                 habitId,
@@ -165,15 +164,15 @@ export const checkinHabit = async (req: Request, res: Response) => {
         })
     }
 
-    // 🔄 Atualiza streaks e progresso após alteração
     const allCheckins = await prisma.habitCheckin.findMany({
         where: { habitId },
         orderBy: { date: "desc" },
     })
 
-    const dates = allCheckins.map(c => startOfDay(new Date(c.date)).getTime())
+    const dates = allCheckins.map((c: HabitCheckin) =>
+        startOfDay(new Date(c.date)).getTime()
+    );
 
-    // Calcula streak
     let streak = 0
     let bestStreak = 0
     let currentDate = startOfDay(new Date()).getTime()
@@ -182,21 +181,20 @@ export const checkinHabit = async (req: Request, res: Response) => {
         if (dates.includes(currentDate)) {
             streak++
             bestStreak = Math.max(bestStreak, streak)
-            currentDate -= 86400000 // volta 1 dia
+            currentDate -= 86400000
         } else {
             break
         }
     }
 
-    // Calcula progresso semanal
     const startOfWeek = startOfDay(new Date())
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()) // domingo
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
 
-    const weeklyProgress = allCheckins.filter(c =>
+    const weeklyProgress = allCheckins.filter((c: HabitCheckin) =>
         new Date(c.date) >= startOfWeek
-    ).length
+    ).length;
 
-    // 🔁 Atualiza o hábito no banco
+
     await prisma.habit.update({
         where: { id: habitId },
         data: {

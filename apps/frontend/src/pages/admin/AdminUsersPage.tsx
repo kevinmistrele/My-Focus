@@ -12,7 +12,7 @@ import {UserService} from "../../services";
 
 export const AdminUsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([])
-    const [loading, setLoading] = useState(true)
+    const [, setLoading] = useState(true)
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
 
@@ -31,7 +31,6 @@ export const AdminUsersPage: React.FC = () => {
         type: "user" as "user" | "admin",
     })
 
-    // Confirm Modal States
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: "",
@@ -55,13 +54,7 @@ export const AdminUsersPage: React.FC = () => {
     const fetchUsers = async (page = 1) => {
         try {
             const res = await UserService.getAll({ page, limit: 10 })
-            const usersData = res?.data // 👈 agora pega só o array de usuários
-            const total = res?.total
-            const totalPages = res?.totalPages
-
-            console.log('Total de paginas:',totalPages)
-            console.log('Total de usuarios:',total)
-            console.log('Data total:',usersData)
+            const usersData = res?.data
 
             if (!Array.isArray(usersData)) {
                 throw new Error("Formato de resposta inesperado da API")
@@ -75,10 +68,9 @@ export const AdminUsersPage: React.FC = () => {
             }))
 
             setUsers(parsedUsers)
-            setTotalPages(res?.totalPages || 1)// ✅ agora pega da API
+            setTotalPages(res?.totalPages || 1)
             setCurrentPage(page)
         } catch (err) {
-            console.error("Erro ao buscar usuários:", err)
             setUsers([])
         } finally {
             setLoading(false)
@@ -106,10 +98,6 @@ export const AdminUsersPage: React.FC = () => {
     useEffect(() => {
         fetchUsers(currentPage)
     }, [currentPage])
-
-    useEffect(() => {
-        console.log("📦 Users recebidos:", users)
-    }, [users])
 
 
     const handleToggleUserType = (user: User) => {
@@ -189,12 +177,6 @@ export const AdminUsersPage: React.FC = () => {
     const getUserTypeLabel = (type: string) => {
         return type === "admin" ? "Admin" : "Usuário"
     }
-
-    console.log("📦 Todos os usuários:", users)
-    console.log("🔍 Termo de busca:", searchTerm)
-    console.log("🧾 Filtro selecionado:", filter)
-    console.log("🎯 Usuários filtrados:", filteredUsers)
-
 
     return (
         <div className="space-y-6">
@@ -283,11 +265,6 @@ export const AdminUsersPage: React.FC = () => {
                         </thead>
                         <tbody>
                         {filteredUsers.map((user) => {
-                            console.log("Renderizando usuário:", user)
-                            console.log("Todos os usuários:", users)
-                            console.log("Filtro aplicado:", filter)
-                            console.log("Termo de busca:", searchTerm)
-                            console.log("Resultado final:", filteredUsers)
 
                             return (
                                 <tr key={user.id} className="border-b border-custom hover:bg-surface-light transition-colors">

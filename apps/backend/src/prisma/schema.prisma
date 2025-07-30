@@ -1,0 +1,183 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// ENUMS
+//
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum SessionType {
+  work
+  break
+  longBreak
+}
+
+enum UserType {
+  admin
+  user
+}
+
+enum ActivityType {
+  user
+  task
+  pomodoro
+  system
+  goal
+}
+
+//
+// MODELS
+//
+
+model User {
+  id              String            @id @default(uuid())
+  name            String
+  email           String            @unique
+  password        String
+  avatar          String?
+  type            UserType          @default(user)
+  createdAt       DateTime          @default(now())
+  lastLogin       DateTime?
+  loginStreak     Int               @default(0)
+  lastStreakDate  DateTime?
+
+  tasks           Task[]            @relation("UserTasks")
+  sessions        PomodoroSession[] @relation("UserSessions")
+  goals           Goal[]            @relation("UserGoals")
+  habits          Habit[]           @relation("UserHabits")
+  activityLogs    ActivityLog[]     @relation("UserLogs")
+  quotes          Quote[]
+  moods           MoodLog[]
+  habitCheckins   HabitCheckin[]
+  notes           Note[]            @relation("UserNotes")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  priority    Priority  @default(medium)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tags        String[]  @default([])
+  pomodoros   Int       @default(0)
+
+  user        User      @relation("UserTasks", fields: [userId], references: [id])
+  userId      String
+}
+
+model PomodoroSession {
+  id        String      @id @default(uuid())
+  duration  Int
+  type      SessionType
+  startTime DateTime
+  endTime   DateTime?
+  completed Boolean     @default(false)
+
+  user      User        @relation("UserSessions", fields: [userId], references: [id])
+  userId    String
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  type        String?
+  category    String?
+  targetDate  DateTime?
+  progress    Int      @default(0)
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation("UserGoals", fields: [userId], references: [id])
+  userId      String
+}
+
+model Habit {
+  id             String         @id @default(uuid())
+  name           String
+  description    String
+  category       String         @default("Geral")
+  streak         Int            @default(0)
+  bestStreak     Int            @default(0)
+  weeklyGoal     Int            @default(7)
+  weeklyProgress Int            @default(0)
+  color          String
+  createdAt      DateTime       @default(now())
+
+  user           User           @relation("UserHabits", fields: [userId], references: [id])
+  userId         String
+  checkins       HabitCheckin[]
+}
+
+model HabitCheckin {
+  id      String   @id @default(uuid())
+  date    DateTime @default(now())
+
+  habit   Habit    @relation(fields: [habitId], references: [id])
+  habitId String
+
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+
+  @@unique([habitId, date])
+}
+
+model ActivityLog {
+  id        String       @id @default(uuid())
+  action    String
+  details   String
+  timestamp DateTime     @default(now())
+  type      ActivityType
+
+  user      User         @relation("UserLogs", fields: [userId], references: [id])
+  userId    String
+  userName  String
+}
+
+model MoodLog {
+  id      String   @id @default(uuid())
+  mood    String
+  note    String?
+  date    DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+}
+
+model Quote {
+  id        String   @id @default(uuid())
+  text      String
+  author    String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  color     String   @default("bg-yellow-200")
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation("UserNotes", fields: [userId], references: [id])
+  userId    String
+}

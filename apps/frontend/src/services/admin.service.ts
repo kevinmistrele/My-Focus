@@ -5,7 +5,7 @@ import type {AdminStats} from "../lib/types.ts";
 
 
 export const AdminService = {
-    getStats: async (): Promise<AdminStats> => {
+    getStats: async (): Promise<AdminStats | null> => {
         return await api.get("/admin/stats") // ou direto: return api.get(...)
     },
 }

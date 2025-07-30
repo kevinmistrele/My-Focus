@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useEffect, useState, useContext } from "react"
 import { AuthService } from "../services"
 import type {User} from "../lib/types.ts";

@@ -1,5 +1,5 @@
-import { prisma } from "../../prisma/client"
-import {$Enums, Prisma} from "../generated/prisma"
+import { prisma } from "../prisma/client"
+import {$Enums, Prisma} from "@prisma/client"
 import ActivityType = $Enums.ActivityType;
 
 

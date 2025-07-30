@@ -14,9 +14,9 @@ export const AdminLogsPage: React.FC = () => {
     const [filter, setFilter] = useState<"all" | "user" | "task" | "pomodoro" | "system">("all")
     const [searchTerm, setSearchTerm] = useState("")
     const [isLoading, setIsLoading] = useState(true)
-    const [limit, setLimit] = useState(10)
+    const [limit,] = useState(10)
     const [page, setPage] = useState(1)
-    const [hasMore, setHasMore] = useState(true)
+    const [, setHasMore] = useState(true)
     const [totalLogs, setTotalLogs] = useState(0)
 
     const [logCountsByType, setLogCountsByType] = useState({
@@ -48,15 +48,13 @@ export const AdminLogsPage: React.FC = () => {
 
             setLogs((prev) => {
                 const prevIds = new Set(prev.map((l) => l.id))
-                const newUniqueLogs = mappedLogs.filter((l) => !prevIds.has(l.id))
+                const newUniqueLogs = mappedLogs.filter((l: ActivityLog) => !prevIds.has(l.id))
                 const combined = [...prev, ...newUniqueLogs]
                 setHasMore(combined.length < total)
                 return combined
             })
 
             setHasMore(logs.length + mappedLogs.length < total)
-        } catch (error) {
-            console.error("Erro ao buscar logs:", error)
         } finally {
             setIsLoading(false)
         }
@@ -83,9 +81,6 @@ export const AdminLogsPage: React.FC = () => {
 
         setFilteredLogs(filtered)
     }, [logs, filter, searchTerm])
-
-    console.log('logs:', logs)
-
 
     const getLogIcon = (type: string) => {
         switch (type) {

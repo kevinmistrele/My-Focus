@@ -5,10 +5,9 @@ import type React from "react"
 interface HeaderProps {
     user?: { name: string; avatar?: string }
     onMenuClick?: () => void
-    sidebarOpen?: boolean
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, onMenuClick, sidebarOpen }) => {
+export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
     return (
         <header className="bg-surface border-b border-custom px-6 py-4 lg:border-l-0">
             <div className="flex items-center justify-between">

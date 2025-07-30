@@ -12,11 +12,12 @@ import {toast} from "sonner";
 
 export const HabitsPage: React.FC = () => {
     const [habits, setHabits] = useState<Habit[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [, setIsLoading] = useState(true)
     useEffect(() => {
         const fetchHabits = async () => {
             try {
                 const data = await HabitService.getAll()
+                if (!data) return
                 setHabits(data)
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
@@ -36,6 +37,7 @@ export const HabitsPage: React.FC = () => {
 
             // Recarrega todos os hábitos com status atualizado do backend
             const updatedHabits = await HabitService.getAll()
+            if (!updatedHabits) return
             setHabits(updatedHabits)
             toast.success("Hábito atualizado!")
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,8 +95,6 @@ export const HabitsPage: React.FC = () => {
         setEditingHabit(null)
         setIsModalOpen(true)
     }
-
-    // Generate week days for streak visualization
     const getWeekDays = () => {
         const days = []
         for (let i = 6; i >= 0; i--) {

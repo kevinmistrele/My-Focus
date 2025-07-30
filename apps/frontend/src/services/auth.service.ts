@@ -10,7 +10,7 @@ export const AuthService = {
     /**
      * Login do usuário
      */
-    login: async (email: string, password: string): Promise<LoginResponse> => {
+    login: async (email: string, password: string): Promise<LoginResponse | null> => {
         return api.post<LoginResponse>("/auth/login", {email, password})
     },
 
@@ -33,7 +33,7 @@ export const AuthService = {
     resetPassword: (token: string, newPassword: string) =>
         api.post("/auth/reset-password", {token, newPassword}),
 
-    getCurrentUser: async (): Promise<User> => {
+    getCurrentUser: async (): Promise<User | null> => {
         return await api.get<User>("/auth/me");
     }
 }

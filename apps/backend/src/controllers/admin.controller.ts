@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { prisma } from "../../prisma/client"
+import { prisma } from "../prisma/client"
 import { startOfDay, endOfDay, startOfMonth } from "date-fns"
 
 export const getAdminStats = async (_req: Request, res: Response) => {
@@ -13,7 +13,7 @@ export const getAdminStats = async (_req: Request, res: Response) => {
         tasksCompletedToday,
         activeUsersRaw,
         averageFocusTimeRaw,
-        recentActivity, // <- adicionado
+        recentActivity,
     ] = await Promise.all([
         prisma.user.count(),
         prisma.task.count(),
@@ -31,7 +31,7 @@ export const getAdminStats = async (_req: Request, res: Response) => {
         prisma.user.count({
             where: {
                 lastLogin: {
-                    gte: new Date(Date.now() - 1000 * 60 * 60 * 24), // últimas 24h
+                    gte: new Date(Date.now() - 1000 * 60 * 60 * 24),
                 },
             },
         }),
@@ -68,6 +68,6 @@ export const getAdminStats = async (_req: Request, res: Response) => {
         activeUsers: activeUsersRaw,
         averageFocusTime,
         engagementRate,
-        recentActivity, // <- incluído na resposta
+        recentActivity,
     })
 }

@@ -28,8 +28,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     })
     const [isLoading, setIsLoading] = useState(false)
     const [resetToken, setResetToken] = useState<string | null>(null)
-
-    // Check for reset token in URL on component mount
     React.useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get("token")
@@ -86,7 +84,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     const handlePasswordResetSuccess = () => {
         setCurrentView("login")
         setResetToken(null)
-        // Show success message
         alert("Senha redefinida com sucesso! Faça login com sua nova senha.")
     }
 
@@ -118,7 +115,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         return <ForgotPasswordPage onBackToLogin={handleBackToLogin} features={features} />
     }
 
-    // Render reset password page
     if (currentView === "reset-password") {
         return (
             <ResetPasswordPage

@@ -2,10 +2,20 @@
   "name": "myfocus",
   "private": true,
   "scripts": {
+    "install:all": "npm --prefix apps/frontend install && npm --prefix apps/backend install",
+    "postinstall": "npm run install:all && npm --prefix apps/backend run generate",
+    "dev": "concurrently \"npm run dev:back\" \"npm run dev:front\"",
     "dev:front": "npm --prefix apps/frontend run dev",
-    "dev:back": "npm --prefix apps/backend run dev"
+    "dev:back": "npm --prefix apps/backend run dev",
+    "build:all": "npm --prefix apps/frontend run build && npm --prefix apps/backend run build",
+    "prod": "concurrently \"npm run prod:back\" \"npm run prod:front\"",
+    "prod:front": "npm --prefix apps/frontend run prod",
+    "prod:back": "npm --prefix apps/backend run prod"
   },
   "dependencies": {
     "@prisma/client": "^6.12.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
   }
 }

@@ -17,7 +17,7 @@ export default function App() {
         setSidebarOpen(false)
     }
 
-    if (loading) return null // ou um spinner
+    if (loading) return null
 
     if (!user) {
         return <LoginPage onLogin={(user, token) => login(user, token)} />

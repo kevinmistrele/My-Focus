@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { prisma } from "../../prisma/client";
+import { prisma } from "../prisma/client";
 import { logActivity } from "../services/logActivity";
-import { $Enums } from "../generated/prisma";
+import { $Enums } from "@prisma/client";
 
 export const getPomodorosByUser = async (req: Request, res: Response) => {
     const user = (req as any).user;
@@ -75,7 +75,7 @@ export const createPomodoroSession = async (req: Request, res: Response) => {
     const session = await prisma.pomodoroSession.create({
         data: {
             duration,
-            type: $Enums.SessionType.work, // ou "work" validado com segurança
+            type: $Enums.SessionType.work,
             startTime: new Date(),
             user: {
                 connect: { id: user.id },
