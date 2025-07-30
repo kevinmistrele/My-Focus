@@ -5,6 +5,8 @@ import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
+import {AuthService} from "../services";
+import {toast} from "sonner";
 
 interface ResetPasswordPageProps {
     token: string | null
@@ -25,6 +27,14 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ token, onS
     const [isLoading, setIsLoading] = useState(false)
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [isTokenValid, setIsTokenValid] = useState(true)
+
+    const handleInputChange = (field: "password" | "confirmPassword", value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+        }))
+    }
+
 
     // Simulate token validation
     React.useEffect(() => {
@@ -62,24 +72,25 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ token, onS
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!validateForm()) return
+        if (!validateForm() || !token) return
 
         setIsLoading(true)
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false)
+        try {
+            await AuthService.resetPassword(token, formData.password)
+            toast.success("Senha redefinida com sucesso!")
             onSuccess()
-        }, 2000)
-    }
-
-    const handleInputChange = (field: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
-        // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: "" }))
+        } catch (error: any) {
+            if (error?.response?.data?.error === "Invalid or expired token") {
+                setIsTokenValid(false)
+            } else {
+                toast.error("Erro ao redefinir senha. Tente novamente.")
+            }
+        } finally {
+            setIsLoading(false)
         }
     }
+
 
     // Invalid token state
     if (!isTokenValid) {

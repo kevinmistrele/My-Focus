@@ -1,87 +1,64 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { HabitModal } from "../components/habits/HabitModal"
+import type { Habit } from "../lib/types"
+import {HabitService} from "../services";
+import {toast} from "sonner";
 
-interface Habit {
-    id: string
-    name: string
-    description: string
-    category: string
-    streak: number
-    bestStreak: number
-    completedToday: boolean
-    weeklyGoal: number
-    weeklyProgress: number
-    color: string
-    createdAt: Date
-}
 
 export const HabitsPage: React.FC = () => {
-    const [habits, setHabits] = useState<Habit[]>([
-        {
-            id: "1",
-            name: "Exercitar-se",
-            description: "30 minutos de atividade física",
-            category: "Saúde",
-            streak: 12,
-            bestStreak: 15,
-            completedToday: true,
-            weeklyGoal: 5,
-            weeklyProgress: 4,
-            color: "bg-purple-500",
-            createdAt: new Date(),
-        },
-        {
-            id: "2",
-            name: "Ler",
-            description: "Ler pelo menos 30 minutos",
-            category: "Desenvolvimento",
-            streak: 8,
-            bestStreak: 20,
-            completedToday: false,
-            weeklyGoal: 7,
-            weeklyProgress: 5,
-            color: "bg-purple-500",
-            createdAt: new Date(),
-        },
-        {
-            id: "3",
-            name: "Meditar",
-            description: "10 minutos de meditação",
-            category: "Bem-estar",
-            streak: 5,
-            bestStreak: 12,
-            completedToday: true,
-            weeklyGoal: 7,
-            weeklyProgress: 6,
-            color: "bg-purple-500",
-            createdAt: new Date(),
-        },
-    ])
+    const [habits, setHabits] = useState<Habit[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    useEffect(() => {
+        const fetchHabits = async () => {
+            try {
+                const data = await HabitService.getAll()
+                setHabits(data)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (error) {
+                toast.error("Erro ao buscar hábitos.")
+            } finally {
+                setIsLoading(false)
+            }
+        }
 
+        fetchHabits()
+    }, [])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null)
+    const toggleHabit = async (id: string) => {
+        try {
+            await HabitService.checkin(id)
 
-    const toggleHabit = (id: string) => {
-        setHabits(
-            habits.map((habit) =>
-                habit.id === id
-                    ? {
-                        ...habit,
-                        completedToday: !habit.completedToday,
-                        streak: !habit.completedToday ? habit.streak + 1 : Math.max(0, habit.streak - 1),
-                        weeklyProgress: !habit.completedToday
-                            ? Math.min(habit.weeklyGoal, habit.weeklyProgress + 1)
-                            : Math.max(0, habit.weeklyProgress - 1),
-                    }
-                    : habit,
-            ),
-        )
+            // Recarrega todos os hábitos com status atualizado do backend
+            const updatedHabits = await HabitService.getAll()
+            setHabits(updatedHabits)
+            toast.success("Hábito atualizado!")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (error) {
+            toast.error("Erro ao marcar hábito.")
+        }
     }
+
+
+
+
+    const handleDeleteHabit = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir este hábito?")) return;
+
+        try {
+            await HabitService.delete(id);
+            setHabits(habits.filter(h => h.id !== id));
+            toast.success("Hábito excluído com sucesso.")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao excluir hábito.")
+        }
+    };
 
     const stats = {
         totalHabits: habits.length,
@@ -93,18 +70,23 @@ export const HabitsPage: React.FC = () => {
                 : 0,
     }
 
-    const handleSaveHabit = (habitData: Habit) => {
-        if (editingHabit) {
-            setHabits(habits.map((habit) => (habit.id === habitData.id ? habitData : habit)))
-        } else {
-            setHabits([habitData, ...habits])
+    const handleSaveHabit = async (habitData: Habit) => {
+        try {
+            if (editingHabit) {
+                const updated = await HabitService.update(habitData.id, habitData)
+                setHabits(habits.map((habit) => (habit.id === habitData.id ? updated : habit)))
+                toast.success("Hábito atualizado com sucesso.")
+            } else {
+                const created = await HabitService.create(habitData)
+                setHabits([created, ...habits])
+                toast.success("Hábito criado com sucesso.")
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao salvar hábito.")
+        } finally {
+            setEditingHabit(null)
         }
-        setEditingHabit(null)
-    }
-
-    const handleEditHabit = (habit: Habit) => {
-        setEditingHabit(habit)
-        setIsModalOpen(true)
     }
 
     const handleAddHabit = () => {
@@ -130,7 +112,12 @@ export const HabitsPage: React.FC = () => {
                     <h1 className="text-3xl font-bold text-primary">Hábitos</h1>
                     <p className="text-secondary mt-1">Construa rotinas positivas</p>
                 </div>
-                <Button onClick={handleAddHabit} className="shadow-purple">
+                <Button
+                    onClick={handleAddHabit}
+                    className="shadow-purple"
+                    disabled={habits.length >= 10}
+                    title={habits.length >= 10 ? "Limite de 10 hábitos atingido" : ""}
+                >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -193,6 +180,14 @@ export const HabitsPage: React.FC = () => {
                                         <span className="px-2 py-1 bg-surface-light text-xs rounded-full text-secondary">
                       {habit.category}
                     </span>
+
+                                        <button
+                                            onClick={() => handleDeleteHabit(habit.id)}
+                                            className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                            title="Excluir hábito"
+                                        >
+                                            🗑️
+                                        </button>
                                     </div>
                                     <p className="text-secondary text-sm mb-2">{habit.description}</p>
 

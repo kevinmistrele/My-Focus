@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Card } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
@@ -8,49 +8,14 @@ import { Input } from "../../components/ui/Input"
 import { Modal } from "../../components/ui/Modal"
 import { ConfirmModal } from "../../components/ui/ConfirmModal"
 import type { User } from "../../lib/types"
+import {UserService} from "../../services";
 
 export const AdminUsersPage: React.FC = () => {
-    const [users, setUsers] = useState<User[]>([
-        {
-            id: "1",
-            name: "João Silva",
-            email: "joao@exemplo.com",
-            type: "user",
-            createdAt: new Date("2024-01-15"),
-            lastLogin: new Date("2024-01-20"),
-            preferences: {
-                pomodoroWorkTime: 25,
-                pomodoroBreakTime: 5,
-                pomodoroLongBreakTime: 15,
-            },
-        },
-        {
-            id: "2",
-            name: "Maria Santos",
-            email: "maria@exemplo.com",
-            type: "admin",
-            createdAt: new Date("2024-01-10"),
-            lastLogin: new Date("2024-01-21"),
-            preferences: {
-                pomodoroWorkTime: 25,
-                pomodoroBreakTime: 5,
-                pomodoroLongBreakTime: 15,
-            },
-        },
-        {
-            id: "3",
-            name: "Pedro Costa",
-            email: "pedro@exemplo.com",
-            type: "user",
-            createdAt: new Date("2024-01-12"),
-            lastLogin: new Date("2024-01-19"),
-            preferences: {
-                pomodoroWorkTime: 30,
-                pomodoroBreakTime: 10,
-                pomodoroLongBreakTime: 20,
-            },
-        },
-    ])
+    const [users, setUsers] = useState<User[]>([])
+    const [loading, setLoading] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+
 
     const [filter, setFilter] = useState<"all" | "user" | "admin">("all")
     const [searchTerm, setSearchTerm] = useState("")
@@ -76,33 +41,76 @@ export const AdminUsersPage: React.FC = () => {
     })
 
     const filteredUsers = users.filter((user) => {
-        const matchesFilter = filter === "all" || user.type === filter
-        const matchesSearch =
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-        return matchesFilter && matchesSearch
+        const nameMatch = user.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const emailMatch = user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        const searchMatch = searchTerm === "" || nameMatch || emailMatch
+
+        const typeMatch = filter === "all" || user.type === filter
+
+        return searchMatch && typeMatch
     })
 
-    const handleCreateUser = () => {
+
+
+    const fetchUsers = async (page = 1) => {
+        try {
+            const res = await UserService.getAll({ page, limit: 10 })
+            const usersData = res?.data // 👈 agora pega só o array de usuários
+            const total = res?.total
+            const totalPages = res?.totalPages
+
+            console.log('Total de paginas:',totalPages)
+            console.log('Total de usuarios:',total)
+            console.log('Data total:',usersData)
+
+            if (!Array.isArray(usersData)) {
+                throw new Error("Formato de resposta inesperado da API")
+            }
+
+            const parsedUsers: User[] = usersData.map((user: any) => ({
+                ...user,
+                type: (user.type || "user").toLowerCase(),
+                createdAt: new Date(user.createdAt),
+                lastLogin: user.lastLogin ? new Date(user.lastLogin) : null,
+            }))
+
+            setUsers(parsedUsers)
+            setTotalPages(res?.totalPages || 1)// ✅ agora pega da API
+            setCurrentPage(page)
+        } catch (err) {
+            console.error("Erro ao buscar usuários:", err)
+            setUsers([])
+        } finally {
+            setLoading(false)
+        }
+    }
+
+
+
+
+
+    const handleCreateUser = async () => {
         if (!newUser.name || !newUser.email || !newUser.password) return
 
-        const user: User = {
-            id: Date.now().toString(),
-            name: newUser.name,
-            email: newUser.email,
-            type: newUser.type,
-            createdAt: new Date(),
-            preferences: {
-                pomodoroWorkTime: 25,
-                pomodoroBreakTime: 5,
-                pomodoroLongBreakTime: 15,
-            },
+        try {
+            const res = await UserService.create(newUser)
+            setUsers((prev) => [res.data, ...prev])
+            setNewUser({ name: "", email: "", password: "", type: "user" })
+            setIsCreateModalOpen(false)
+        } catch (err) {
+            console.error("Erro ao criar usuário:", err)
         }
-
-        setUsers([user, ...users])
-        setNewUser({ name: "", email: "", password: "", type: "user" })
-        setIsCreateModalOpen(false)
     }
+
+
+    useEffect(() => {
+        fetchUsers(currentPage)
+    }, [currentPage])
+
+    useEffect(() => {
+        console.log("📦 Users recebidos:", users)
+    }, [users])
+
 
     const handleToggleUserType = (user: User) => {
         const newType = user.type === "admin" ? "user" : "admin"
@@ -126,13 +134,18 @@ export const AdminUsersPage: React.FC = () => {
             title: "Excluir Usuário",
             message: `Tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`,
             type: "danger",
-            onConfirm: () => {
-                setUsers(users.filter((u) => u.id !== user.id))
-                setConfirmModal({ ...confirmModal, isOpen: false })
+            onConfirm: async () => {
+                try {
+                    await UserService.delete(user.id)
+                    setUsers((prev) => prev.filter((u) => u.id !== user.id))
+                } catch (err) {
+                    console.error("Erro ao excluir usuário:", err)
+                } finally {
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                }
             },
         })
     }
-
     const handleViewUser = (user: User) => {
         setSelectedUser(user)
         setIsViewModalOpen(true)
@@ -143,13 +156,31 @@ export const AdminUsersPage: React.FC = () => {
         setIsEditModalOpen(true)
     }
 
-    const handleSaveEditUser = () => {
+    const handleSaveEditUser = async () => {
         if (!editingUser) return
 
-        setUsers(users.map((user) => (user.id === editingUser.id ? editingUser : user)))
-        setIsEditModalOpen(false)
-        setEditingUser(null)
+        try {
+            const res = await UserService.update(editingUser.id, editingUser)
+
+            if (!res || (res.status !== 200 && res.status !== 204)) {
+                throw new Error("Erro ao editar usuário.")
+            }
+
+
+            const updated: User = {
+                ...res.data,
+                createdAt: new Date(res.data.createdAt),
+                lastLogin: res.data.lastLogin ? new Date(res.data.lastLogin) : null,
+            }
+
+            setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+            setEditingUser(null)
+            setIsEditModalOpen(false)
+        } catch (err) {
+            console.error("Erro ao editar usuário:", err)
+        }
     }
+
 
     const getUserTypeColor = (type: string) => {
         return type === "admin" ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"
@@ -158,6 +189,12 @@ export const AdminUsersPage: React.FC = () => {
     const getUserTypeLabel = (type: string) => {
         return type === "admin" ? "Admin" : "Usuário"
     }
+
+    console.log("📦 Todos os usuários:", users)
+    console.log("🔍 Termo de busca:", searchTerm)
+    console.log("🧾 Filtro selecionado:", filter)
+    console.log("🎯 Usuários filtrados:", filteredUsers)
+
 
     return (
         <div className="space-y-6">
@@ -245,48 +282,48 @@ export const AdminUsersPage: React.FC = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.id} className="border-b border-custom hover:bg-surface-light transition-colors">
-                                <td className="py-3 px-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm font-medium">{user.name.charAt(0).toUpperCase()}</span>
+                        {filteredUsers.map((user) => {
+                            console.log("Renderizando usuário:", user)
+                            console.log("Todos os usuários:", users)
+                            console.log("Filtro aplicado:", filter)
+                            console.log("Termo de busca:", searchTerm)
+                            console.log("Resultado final:", filteredUsers)
+
+                            return (
+                                <tr key={user.id} className="border-b border-custom hover:bg-surface-light transition-colors">
+                                    <td className="py-3 px-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                                <span className="text-white text-sm font-medium">{user.name.charAt(0).toUpperCase()}</span>
+                                            </div>
+                                            <span className="font-medium text-primary">{user.name}</span>
                                         </div>
-                                        <span className="font-medium text-primary">{user.name}</span>
-                                    </div>
-                                </td>
-                                <td className="py-3 px-4 text-secondary">{user.email}</td>
-                                <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs ${getUserTypeColor(user.type)}`}>
-                      {getUserTypeLabel(user.type)}
-                    </span>
-                                </td>
-                                <td className="py-3 px-4 text-secondary">{user.createdAt.toLocaleDateString("pt-BR")}</td>
-                                <td className="py-3 px-4 text-secondary">
-                                    {user.lastLogin ? user.lastLogin.toLocaleDateString("pt-BR") : "Nunca"}
-                                </td>
-                                <td className="py-3 px-4">
-                                    <div className="flex items-center justify-end space-x-2">
-                                        <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                />
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                />
-                                            </svg>
-                                        </Button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="py-3 px-4 text-secondary">{user.email}</td>
+                                    <td className="py-3 px-4">
+          <span className={`px-2 py-1 rounded-full text-xs ${getUserTypeColor(user.type)}`}>
+            {getUserTypeLabel(user.type)}
+          </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-secondary">
+                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString("pt-BR") : "-"}
+                                    </td>
+                                    <td className="py-3 px-4 text-secondary">
+                                        {user.lastLogin ? user.lastLogin.toLocaleDateString("pt-BR") : "Nunca"}
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <div className="flex items-center justify-end space-x-2">
+                                            <Button variant="ghost" size="sm" onClick={() => handleViewUser(user)}>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
                         </tbody>
                     </table>
                 </div>
@@ -299,6 +336,16 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
                 )}
             </Card>
+
+            <div className="flex justify-center mt-6 space-x-2">
+                <Button disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                    Anterior
+                </Button>
+                <span className="text-primary px-4 pt-2">Página {currentPage} de {totalPages}</span>
+                <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                    Próxima
+                </Button>
+            </div>
 
             {/* Create User Modal */}
             <Modal
@@ -395,24 +442,6 @@ export const AdminUsersPage: React.FC = () => {
                                 <p className="text-primary">
                                     {selectedUser.lastLogin ? selectedUser.lastLogin.toLocaleDateString("pt-BR") : "Nunca"}
                                 </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 className="text-lg font-medium text-primary mb-3">Preferências</h4>
-                            <div className="bg-surface-light rounded-lg p-4 space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-secondary">Tempo de Trabalho:</span>
-                                    <span className="text-primary">{selectedUser.preferences.pomodoroWorkTime} min</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-secondary">Pausa Curta:</span>
-                                    <span className="text-primary">{selectedUser.preferences.pomodoroBreakTime} min</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-secondary">Pausa Longa:</span>
-                                    <span className="text-primary">{selectedUser.preferences.pomodoroLongBreakTime} min</span>
-                                </div>
                             </div>
                         </div>
                     </div>

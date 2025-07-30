@@ -3,17 +3,14 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Card } from "../../components/ui/Card"
+import {AdminService} from "../../services/admin.service.ts";
+import type {Activity, AdminStats} from "../../lib/types.ts";
+import {formatDistanceToNow} from "date-fns";
+import {ptBR} from "date-fns/locale";
 
-interface AdminStats {
-    totalUsers: number
-    totalTasks: number
-    totalPomodoroSessions: number
-    activeUsers: number
-    newUsersThisMonth: number
-    tasksCompletedToday: number
-}
 
-export const AdminDashboardPage: React.FC = () => {
+export const AdminDashboardPage: React.FC<{ onNavigate: (path: string) => void }> = ({ onNavigate }) => {
+
     const [stats, setStats] = useState<AdminStats>({
         totalUsers: 0,
         totalTasks: 0,
@@ -21,62 +18,41 @@ export const AdminDashboardPage: React.FC = () => {
         activeUsers: 0,
         newUsersThisMonth: 0,
         tasksCompletedToday: 0,
+        averageFocusTime: 0,
+        engagementRate: 0,
+        recentActivity: [],
     })
 
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            setStats({
-                totalUsers: 1247,
-                totalTasks: 8934,
-                totalPomodoroSessions: 15672,
-                activeUsers: 342,
-                newUsersThisMonth: 89,
-                tasksCompletedToday: 156,
-            })
-            setIsLoading(false)
-        }, 1000)
+        const fetchStats = async () => {
+            try {
+                const data = await AdminService.getStats()
+                setStats(data)
+            } catch (err) {
+                console.error("Erro ao buscar estatísticas:", err)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchStats()
     }, [])
 
-    const recentActivity = [
-        {
-            id: 1,
-            user: "João Silva",
-            action: "Criou uma nova tarefa",
-            time: "2 minutos atrás",
-            type: "task" as const,
-        },
-        {
-            id: 2,
-            user: "Maria Santos",
-            action: "Completou sessão Pomodoro",
-            time: "5 minutos atrás",
-            type: "pomodoro" as const,
-        },
-        {
-            id: 3,
-            user: "Pedro Costa",
-            action: "Fez login no sistema",
-            time: "8 minutos atrás",
-            type: "user" as const,
-        },
-        {
-            id: 4,
-            user: "Ana Oliveira",
-            action: "Concluiu 5 tarefas",
-            time: "12 minutos atrás",
-            type: "task" as const,
-        },
-        {
-            id: 5,
-            user: "Carlos Lima",
-            action: "Criou nova meta",
-            time: "15 minutos atrás",
-            type: "goal" as const,
-        },
-    ]
+
+    const exportAsJSON = () => {
+        const blob = new Blob([JSON.stringify(stats, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "relatorio-dashboard.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+
+    const recentActivity = stats.recentActivity || []
 
     const getActivityIcon = (type: string) => {
         switch (type) {
@@ -235,7 +211,7 @@ export const AdminDashboardPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-secondary">Taxa de Engajamento</p>
-                            <p className="text-3xl font-bold text-primary">87%</p>
+                            <p className="text-3xl font-bold text-primary">{stats.engagementRate}%</p>
                             <p className="text-sm text-green-500 mt-1">+5% vs mês anterior</p>
                         </div>
                         <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
@@ -250,7 +226,7 @@ export const AdminDashboardPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-secondary">Tempo Médio de Foco</p>
-                            <p className="text-3xl font-bold text-primary">42min</p>
+                            <p className="text-3xl font-bold text-primary">{stats.averageFocusTime}min</p>
                             <p className="text-sm text-muted mt-1">Por sessão</p>
                         </div>
                         <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center">
@@ -282,10 +258,12 @@ export const AdminDashboardPage: React.FC = () => {
                         >
                             <div className={`text-2xl ${getActivityColor(activity.type)}`}>{getActivityIcon(activity.type)}</div>
                             <div className="flex-1">
-                                <p className="text-primary font-medium">{activity.user}</p>
+                                <p className="text-primary font-medium">{activity.userName}</p>
                                 <p className="text-secondary text-sm">{activity.action}</p>
                             </div>
-                            <div className="text-muted text-sm">{activity.time}</div>
+                            <div className="text-muted text-sm">
+                                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: ptBR })}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -293,7 +271,8 @@ export const AdminDashboardPage: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => onNavigate("/admin/users")}>
                     <div className="text-center p-6">
                         <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                             <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,8 +289,8 @@ export const AdminDashboardPage: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-center p-6">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={exportAsJSON}>
+                <div className="text-center p-6">
                         <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                             <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
@@ -327,7 +306,8 @@ export const AdminDashboardPage: React.FC = () => {
                     </div>
                 </Card>
 
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => onNavigate("/admin/logs")}>
                     <div className="text-center p-6">
                         <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                             <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,8 +325,8 @@ export const AdminDashboardPage: React.FC = () => {
                                 />
                             </svg>
                         </div>
-                        <h3 className="font-semibold text-primary mb-2">Configurações</h3>
-                        <p className="text-secondary text-sm">Configurar parâmetros globais do sistema</p>
+                        <h3 className="font-semibold text-primary mb-2">Logs</h3>
+                        <p className="text-secondary text-sm">Visualize todos os logs do sistema</p>
                     </div>
                 </Card>
             </div>

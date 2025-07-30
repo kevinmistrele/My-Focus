@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Modal } from "../ui/Modal"
 import { Button } from "../ui/Button"
 import { Input } from "../ui/Input"
+import {toast} from "sonner";
 
 interface Goal {
     id: string
@@ -12,7 +13,7 @@ interface Goal {
     description: string
     type: "short" | "long"
     category: string
-    targetDate: Date
+    targetDate: Date | null
     progress: number
     completed: boolean
     createdAt: Date
@@ -55,25 +56,29 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
     }, [goal, isOpen])
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
-        if (!formData.title.trim() || !formData.targetDate) return
+        if (!formData.title.trim() || !formData.targetDate) {
+            toast.error("Preencha o título e a data alvo da meta.");
+            return;
+        }
 
         const goalData: Goal = {
-            id: goal?.id || Date.now().toString(),
+            id: goal?.id || crypto.randomUUID(),
             title: formData.title.trim(),
-            description: formData.description.trim(),
+            description: formData.description?.trim() || "",
             type: formData.type,
-            category: formData.category.trim() || "Geral",
+            category: formData.category?.trim() || "Geral",
             targetDate: new Date(formData.targetDate),
             progress: goal?.progress || 0,
             completed: goal?.completed || false,
             createdAt: goal?.createdAt || new Date(),
-        }
+        };
 
-        onSave(goalData)
-        onClose()
-    }
+        onSave(goalData);
+        toast.success(goal ? "Meta atualizada com sucesso!" : "Meta criada com sucesso!");
+        onClose();
+    };
 
     const categories = [
         "Carreira",

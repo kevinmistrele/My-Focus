@@ -6,6 +6,8 @@ import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
 import { formatTime } from "../lib/utils"
+import {PomodoroService} from "../services";
+import {toast} from "sonner";
 
 export const PomodoroPage: React.FC = () => {
     const [customMinutes, setCustomMinutes] = useState(25)
@@ -13,24 +15,43 @@ export const PomodoroPage: React.FC = () => {
     const [isActive, setIsActive] = useState(false)
     const [sessions, setSessions] = useState(0)
     const [isEditing, setIsEditing] = useState(false)
-    const [sessionHistory, setSessionHistory] = useState([
-        {
-            id: 1,
-            date: new Date(),
-            duration: 25,
-            completed: true,
-            startTime: new Date(Date.now() - 30 * 60 * 1000),
-            endTime: new Date(),
-        },
-        {
-            id: 2,
-            date: new Date(Date.now() - 60 * 60 * 1000),
-            duration: 25,
-            completed: true,
-            startTime: new Date(Date.now() - 90 * 60 * 1000),
-            endTime: new Date(Date.now() - 60 * 60 * 1000),
-        },
-    ])
+    const [sessionHistory, setSessionHistory] = useState<any[]>([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalMinutes, setTotalMinutes] = useState(0)
+
+    useEffect(() => {
+        const fetchSessions = async () => {
+            try {
+                const res = await PomodoroService.getAll({ page: currentPage, limit: 5 })
+                const { data, total, totalDuration, totalPages } = res
+
+                const mapped = data.map((s: any) => {
+                    const start = new Date(s.startTime)
+                    const end = new Date(start.getTime() + s.duration * 60 * 1000)
+                    return {
+                        id: s.id,
+                        date: start,
+                        duration: s.duration,
+                        completed: true,
+                        startTime: start,
+                        endTime: end,
+                    }
+                })
+
+                setSessionHistory(mapped)
+                setSessions(total)
+                setTotalMinutes(totalDuration)
+                setTotalPages(totalPages)
+            } catch (err) {
+                toast.error("Erro ao carregar sessões do Pomodoro.")
+            }
+        }
+
+        fetchSessions()
+    }, [currentPage])
+
+
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null
@@ -40,30 +61,47 @@ export const PomodoroPage: React.FC = () => {
                 setTimeLeft((timeLeft) => timeLeft - 1)
             }, 1000)
         } else if (timeLeft === 0 && isActive) {
-            // Timer finished
-            setIsActive(false)
-            setSessions((prev) => prev + 1)
+            const handleSessionComplete = async () => {
+                setIsActive(false)
+                setSessions((prev) => prev + 1)
+                setTimeLeft(customMinutes * 60)
 
-            // Add to history
-            const newSession = {
-                id: Date.now(),
-                date: new Date(),
-                duration: customMinutes,
-                completed: true,
-                startTime: new Date(Date.now() - customMinutes * 60 * 1000),
-                endTime: new Date(),
+                const now = new Date()
+                const start = new Date(now.getTime() - customMinutes * 60 * 1000)
+
+                const payload = {
+                    duration: customMinutes,
+                    type: "work" as const,
+                    startTime: start,
+                }
+
+                try {
+                    const saved = await PomodoroService.create(payload)
+
+                    setSessionHistory((prev) => [
+                        {
+                            id: saved.id,
+                            date: new Date(saved.startTime),
+                            duration: saved.duration,
+                            completed: true,
+                            startTime: new Date(saved.startTime),
+                            endTime: new Date(),
+                        },
+                        ...prev,
+                    ])
+
+                    if (Notification.permission === "granted") {
+                        new Notification("MyFocus", {
+                            body: "Sessão de foco concluída! 🎉",
+                            icon: "/favicon.ico",
+                        })
+                    }
+                } catch (err) {
+                    toast.error("Erro ao salvar sessão do Pomodoro.")
+                }
             }
-            setSessionHistory((prev) => [newSession, ...prev])
 
-            setTimeLeft(customMinutes * 60)
-
-            // Show notification
-            if (Notification.permission === "granted") {
-                new Notification("MyFocus", {
-                    body: "Sessão de foco concluída! 🎉",
-                    icon: "/favicon.ico",
-                })
-            }
+            handleSessionComplete()
         }
 
         return () => {
@@ -95,6 +133,7 @@ export const PomodoroPage: React.FC = () => {
     }
 
     const progress = ((customMinutes * 60 - timeLeft) / (customMinutes * 60)) * 100
+
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -245,7 +284,8 @@ export const PomodoroPage: React.FC = () => {
                 <Card padding="sm">
                     <div className="text-center">
                         <div className="text-3xl font-bold text-green-500">
-                            {Math.floor((sessions * customMinutes) / 60)}h {(sessions * customMinutes) % 60}m
+                            {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}
+
                         </div>
                         <div className="text-sm text-secondary">Tempo Total</div>
                     </div>
@@ -292,6 +332,20 @@ export const PomodoroPage: React.FC = () => {
                     </div>
                 )}
             </Card>
+            {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4 px-2">
+                    <Button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
+                        Anterior
+                    </Button>
+                    <span className="text-sm text-secondary">
+            Página {currentPage} de {totalPages}
+        </span>
+                    <Button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
+                        Próxima
+                    </Button>
+                </div>
+            )}
+
         </div>
     )
 }

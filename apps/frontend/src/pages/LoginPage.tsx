@@ -7,9 +7,12 @@ import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
 import { ForgotPasswordPage } from "./ForgotPasswordPage"
 import { ResetPasswordPage } from "./ResetPasswordPage"
+import {AuthService} from "../services";
+import type {User} from "../lib/types.ts";
+import {toast} from "sonner";
 
 interface LoginPageProps {
-    onLogin: (user: { name: string; email: string }) => void
+    onLogin: (user: User, token: string) => void;
 }
 
 type AuthView = "login" | "register" | "forgot-password" | "reset-password"
@@ -37,17 +40,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsLoading(true)
+        e.preventDefault();
+        setIsLoading(true);
 
-        setTimeout(() => {
-            onLogin({
-                name: formData.name || "Usuário",
-                email: formData.email,
-            })
-            setIsLoading(false)
-        }, 1000)
-    }
+        try {
+            if (isLogin) {
+                const res = await AuthService.login(formData.email, formData.password);
+                if (!res) {
+                    toast.error("Erro ao fazer login. Tente novamente.");
+                    return;
+                }
+                localStorage.setItem("token", res.token);
+                onLogin(res.user, res.token);
+                toast.success("Login realizado com sucesso!");
+            } else {
+                if (formData.password !== formData.confirmPassword) {
+                    toast.error("As senhas não coincidem.");
+                    return;
+                }
+
+                await AuthService.register(formData.name, formData.email, formData.password);
+                toast.success("Conta criada com sucesso! Faça login.");
+                setIsLogin(true);
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Erro desconhecido.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleInputChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }))
@@ -154,22 +175,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                                     </div>
                                 </div>
                             ))}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex space-x-8 mt-12 pt-8 border-t border-custom">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-primary">10k+</div>
-                                <div className="text-sm text-secondary">Usuários ativos</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-primary">1M+</div>
-                                <div className="text-sm text-secondary">Tarefas concluídas</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-primary">500k+</div>
-                                <div className="text-sm text-secondary">Horas focadas</div>
-                            </div>
                         </div>
                     </div>
                 </div>

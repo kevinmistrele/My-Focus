@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
@@ -8,48 +8,64 @@ import { Input } from "../components/ui/Input"
 import { TaskCard } from "../components/tasks/TaskCard"
 import { TaskModal } from "../components/tasks/TaskModal"
 import type { Task } from "../lib/types"
+import {type TaskPayload, TaskService} from "../services";
+import {toast} from "sonner";
 
 export const TasksPage: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([
-        {
-            id: "1",
-            title: "Finalizar projeto React",
-            description: "Implementar as últimas funcionalidades do sistema de produtividade",
-            completed: false,
-            priority: "high",
-            dueDate: new Date("2024-01-15"),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            tags: ["trabalho", "react"],
-        },
-        {
-            id: "2",
-            title: "Estudar TypeScript",
-            description: "Revisar conceitos avançados de TypeScript",
-            completed: true,
-            priority: "medium",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            tags: ["estudo"],
-        },
-    ])
+    const [tasks, setTasks] = useState<Task[]>([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const TASKS_PER_PAGE = 10;
+
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const res = await TaskService.getAll({ page: currentPage, limit: TASKS_PER_PAGE })
+                if (!Array.isArray(res?.data)) throw new Error("Formato inesperado")
+                setTasks(res.data)
+                setTotalPages(res.totalPages || 1)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (err) {
+                toast.error("Erro ao carregar tarefas.")
+                setTasks([])
+            }
+        }
+
+        fetchTasks()
+    }, [currentPage])
+
 
     const [filter, setFilter] = useState<"all" | "active" | "completed">("all")
     const [searchTerm, setSearchTerm] = useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingTask, setEditingTask] = useState<Task | null>(null)
 
-    const handleSaveTask = (taskData: Task) => {
-        if (editingTask) {
-            // Edit existing task
-            setTasks(tasks.map((task) => (task.id === taskData.id ? taskData : task)))
-        } else {
-            // Add new task
-            setTasks([taskData, ...tasks])
-        }
-        setEditingTask(null)
-    }
+    const handleSaveTask = async (taskData: Task) => {
+        try {
+            const payload: TaskPayload = {
+                title: taskData.title,
+                description: taskData.description,
+                dueDate: taskData.dueDate ? taskData.dueDate.toISOString() : undefined,
+                priority: taskData.priority,
+                tags: taskData.tags ?? [],
+            }
 
+            if (editingTask) {
+                await TaskService.update(taskData.id, payload)
+            } else {
+                await TaskService.create(payload)
+            }
+
+            const updated = await TaskService.getAll({ page: currentPage, limit: TASKS_PER_PAGE })
+            setTasks(updated.data)
+            setTotalPages(updated.totalPages || 1)
+            toast.success(editingTask ? "Tarefa atualizada!" : "Tarefa criada!")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao salvar tarefa.")
+        }
+    }
     const handleEditTask = (task: Task) => {
         setEditingTask(task)
         setIsModalOpen(true)
@@ -60,14 +76,33 @@ export const TasksPage: React.FC = () => {
         setIsModalOpen(true)
     }
 
-    const handleToggleTask = (id: string) => {
-        setTasks(
-            tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed, updatedAt: new Date() } : task)),
-        )
+    const handleToggleTask = async (id: string) => {
+        try {
+            const task = tasks.find(t => t.id === id)
+            if (!task) return
+
+            await TaskService.update(id, { completed: !task.completed })
+            const updated = await TaskService.getAll({ page: currentPage, limit: TASKS_PER_PAGE })
+
+            setTasks(updated.data)
+            setTotalPages(updated.totalPages || 1)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao atualizar status da tarefa.")
+        }
     }
 
-    const handleDeleteTask = (id: string) => {
-        setTasks(tasks.filter((task) => task.id !== id))
+    const handleDeleteTask = async (id: string) => {
+        try {
+            await TaskService.delete(id)
+            const updated = await TaskService.getAll({ page: currentPage, limit: TASKS_PER_PAGE })
+            setTasks(updated.data)
+            setTotalPages(updated.totalPages || 1)
+            toast.success("Tarefa removida.")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_err) {
+            toast.error("Erro ao deletar tarefa.")
+        }
     }
 
     const filteredTasks = tasks.filter((task) => {
@@ -76,16 +111,16 @@ export const TasksPage: React.FC = () => {
 
         const matchesSearch =
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            (task.description ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (task.tags ?? []).some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
 
         return matchesFilter && matchesSearch
     })
 
     const stats = {
-        total: tasks.length,
-        completed: tasks.filter((t) => t.completed).length,
-        active: tasks.filter((t) => !t.completed).length,
+        total: Array.isArray(tasks) ? tasks.length : 0,
+        completed: Array.isArray(tasks) ? tasks.filter((t) => t.completed).length : 0,
+        active: Array.isArray(tasks) ? tasks.filter((t) => !t.completed).length : 0,
     }
 
     return (
@@ -194,6 +229,26 @@ export const TasksPage: React.FC = () => {
                         />
                     ))
                 )}
+                {totalPages > 1 && (
+                    <div className="flex justify-between items-center pt-4">
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Anterior
+                        </Button>
+                        <span className="text-sm text-muted">
+            Página {currentPage} de {totalPages}
+        </span>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Próxima
+                        </Button>
+                    </div>
+                )}
+
             </div>
 
             {/* Task Modal */}

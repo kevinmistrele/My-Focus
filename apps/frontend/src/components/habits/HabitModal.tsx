@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Modal } from "../ui/Modal"
 import { Button } from "../ui/Button"
 import { Input } from "../ui/Input"
+import {toast} from "sonner";
 
 interface Habit {
     id: string
@@ -57,9 +58,12 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
     }, [habit, isOpen])
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
-        if (!formData.name.trim()) return
+        if (!formData.name.trim()) {
+            toast.error("O nome do hábito é obrigatório.");
+            return;
+        }
 
         const habitData: Habit = {
             id: habit?.id || Date.now().toString(),
@@ -73,12 +77,12 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
             completedToday: habit?.completedToday || false,
             weeklyProgress: habit?.weeklyProgress || 0,
             createdAt: habit?.createdAt || new Date(),
-        }
+        };
 
-        onSave(habitData)
-        onClose()
-    }
-
+        onSave(habitData);
+        toast.success(habit ? "Hábito atualizado com sucesso!" : "Novo hábito criado com sucesso!");
+        onClose();
+    };
     const categories = [
         "Saúde",
         "Desenvolvimento",

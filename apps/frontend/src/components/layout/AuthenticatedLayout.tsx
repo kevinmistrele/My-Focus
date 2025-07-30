@@ -25,7 +25,7 @@ export function AuthenticatedLayout({
         <Header user={user} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
             <div className="flex">
-                <Sidebar isOpen={sidebarOpen} currentPath={currentPath} onNavigate={onNavigate} />
+                <Sidebar isOpen={sidebarOpen} currentPath={currentPath} onNavigate={onNavigate} user={user} />
 
                 <main className="flex-1 p-6 lg:ml-0">
                     <div className="max-w-7xl mx-auto">

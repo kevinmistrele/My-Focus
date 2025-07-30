@@ -1,12 +1,13 @@
-import type React from "react"
-import { cn } from "../../lib/utils"
-import type { ButtonVariant, ButtonSize } from "../../lib/types"
+import  React from "react"
+import {cn} from "../../lib/utils"
+import type {ButtonVariant, ButtonSize} from "../../lib/types"
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: ButtonVariant
-    size?: ButtonSize
-    loading?: boolean
-    children: React.ReactNode
+    variant?: ButtonVariant,
+    size?: ButtonSize,
+    loading?: boolean,
+    children: React.ReactNode,
+    onClick?: () => void | Promise<void> | boolean
 }
 
 const buttonVariants = {
@@ -45,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
         >
             {loading && (
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path
                         className="opacity-75"
                         fill="currentColor"

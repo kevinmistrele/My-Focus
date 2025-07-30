@@ -1,12 +1,14 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
+import {AuthService} from "../services";
+import {toast} from "sonner";
 
-interface ForgotPasswordPageProps {
+export interface ForgotPasswordPageProps {
     onBackToLogin: () => void
     features: Array<{
         icon: string
@@ -19,29 +21,49 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
     const [email, setEmail] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [isEmailSent, setIsEmailSent] = useState(false)
+    const [cooldown, setCooldown] = useState(0)
+
+
+    useEffect(() => {
+        if (cooldown > 0) {
+            const interval = setInterval(() => {
+                setCooldown((prev) => prev - 1)
+            }, 1000)
+            return () => clearInterval(interval)
+        }
+    }, [cooldown])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!email.trim()) return
 
-        setIsLoading(true)
-
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false)
+        try {
+            setIsLoading(true)
+            await AuthService.forgotPassword(email)
             setIsEmailSent(true)
-        }, 2000)
-    }
-
-    const handleResendEmail = () => {
-        setIsLoading(true)
-        setTimeout(() => {
+            setCooldown(30)
+            toast.success("Link de recuperação enviado com sucesso!")
+        } catch (err) {
+            toast.error("Erro ao enviar email. Verifique o email digitado.")
+        } finally {
             setIsLoading(false)
-            // Show success message
-            alert("Email reenviado com sucesso!")
-        }, 1500)
+        }
     }
 
+    const handleResendEmail = async () => {
+        if (cooldown > 0) return
+
+        try {
+            setIsLoading(true)
+            await AuthService.forgotPassword(email)
+            toast.success("Email reenviado com sucesso!")
+            setCooldown(30)
+        } catch {
+            toast.error("Erro ao reenviar email.")
+        } finally {
+            setIsLoading(false)
+        }
+    }
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
             {/* Background Effects */}
@@ -201,8 +223,9 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
                                                 variant="outline"
                                                 className="w-full bg-transparent"
                                                 loading={isLoading}
+                                                disabled={cooldown > 0}
                                             >
-                                                Reenviar email
+                                                {cooldown > 0 ? `Reenviar email (${cooldown}s)` : "Reenviar email"}
                                             </Button>
                                         </div>
                                     </div>

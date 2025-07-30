@@ -1,15 +1,17 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
+import {HabitService, PomodoroService, TaskService} from "../services";
+import {useAuth} from "../contexts/AuthContext.tsx";
+import {toast} from "sonner";
 
-interface DashboardPageProps {
-    onNavigate: (path: string) => void
-}
+export const DashboardPage = ({ onNavigate }: { onNavigate: (path: string) => void }) => {
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
+    const { user, loading } = useAuth()
+    const [dataFetched, setDataFetched] = useState(false)
+
     const [greeting, setGreeting] = useState(() => {
         const hour = new Date().getHours()
         if (hour < 12) return "Bom dia"
@@ -17,27 +19,53 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         return "Boa noite"
     })
 
-    // Mock data - em um app real viria de uma API/estado global
-    const stats = {
-        tasksCompleted: 12,
-        tasksTotal: 18,
-        pomodoroSessions: 8,
-        focusTime: 240, // minutes
-        streak: 5,
-        weeklyGoal: 75, // percentage
-    }
+    const [stats, setStats] = useState({
+        tasksCompleted: 0,
+        tasksTotal: 0,
+        pomodoroSessions: 0,
+        focusTime: 0,
+        streak: 0,
+        weeklyGoal: 0,
+    })
 
-    const recentTasks = [
-        { id: 1, title: "Revisar código do projeto", completed: true, priority: "high" },
-        { id: 2, title: "Preparar apresentação", completed: false, priority: "medium" },
-        { id: 3, title: "Responder emails", completed: true, priority: "low" },
-    ]
+    const [recentTasks, setRecentTasks] = useState<any[]>([])
+    const [todayHabits, setTodayHabits] = useState<any[]>([])
 
-    const todayHabits = [
-        { id: 1, name: "Exercitar-se", completed: true, streak: 12 },
-        { id: 2, name: "Ler 30 min", completed: false, streak: 8 },
-        { id: 3, name: "Meditar", completed: true, streak: 5 },
-    ]
+    useEffect(() => {
+        if (loading || !user || dataFetched) return;
+
+        const fetchDashboardData = async () => {
+            try {
+                const [taskSummary, habitSummary, pomodoroSummary] = await Promise.all([
+                    TaskService.getTodaySummary(),
+                    HabitService.getTodaySummary(),
+                    PomodoroService.getSummary()
+                ])
+
+                if (!taskSummary || !habitSummary || !pomodoroSummary) return;
+
+                const { totalSessions, totalDuration } = pomodoroSummary;
+
+                setStats({
+                    tasksCompleted: taskSummary.completed,
+                    tasksTotal: taskSummary.total,
+                    pomodoroSessions: totalSessions,
+                    focusTime: totalDuration,
+                    streak: user.loginStreak || 0,
+                    weeklyGoal: habitSummary.weeklyGoal || 0,
+                });
+
+                setRecentTasks(taskSummary.recentTasks || []);
+                setTodayHabits(habitSummary.todayHabits || []);
+                setDataFetched(true); // 👈 evita novas chamadas
+            } catch (err) {
+                toast.error("Erro ao carregar dados do dashboard.");
+            }
+        };
+
+        fetchDashboardData();
+    }, [loading, user, dataFetched]);
+
 
     const quickActions = [
         { icon: "⏰", label: "Iniciar Pomodoro", action: "/pomodoro" },
@@ -48,7 +76,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-primary">{greeting}! 👋</h1>
@@ -56,7 +83,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
             </div>
 
-            {/* Quick Actions */}
             <Card>
                 <h2 className="text-lg font-semibold text-primary mb-4">Ações Rápidas</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -74,7 +100,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
             </Card>
 
-            {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card padding="sm" className="text-center">
                     <div className="text-3xl font-bold text-primary">
@@ -84,7 +109,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <div className="w-full bg-surface-light rounded-full h-2 mt-2">
                         <div
                             className="bg-primary h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${(stats.tasksCompleted / stats.tasksTotal) * 100}%` }}
+                            style={{ width: `${(stats.tasksCompleted / stats.tasksTotal) * 100 || 0}%` }}
                         />
                     </div>
                 </Card>
@@ -105,7 +130,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
                 <Card padding="sm" className="text-center">
                     <div className="text-3xl font-bold text-purple-500">{stats.weeklyGoal}%</div>
-                    <div className="text-sm text-secondary">Meta Semanal</div>
+                    <div className="text-sm text-secondary">Meta Diária</div>
                     <div className="w-full bg-surface-light rounded-full h-2 mt-2">
                         <div
                             className="bg-purple-500 h-2 rounded-full transition-all duration-300"
@@ -116,7 +141,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Recent Tasks */}
                 <Card>
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-primary">Tarefas Recentes</h2>
@@ -164,7 +188,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     </div>
                 </Card>
 
-                {/* Today's Habits */}
                 <Card>
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-primary">Hábitos de Hoje</h2>
@@ -181,10 +204,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                                 <div className="flex items-center space-x-3">
                                     <div
                                         className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                            habit.completed ? "bg-primary border-primary" : "border-custom-light"
+                                            habit.completedToday ? "bg-primary border-primary" : "border-custom-light"
                                         }`}
                                     >
-                                        {habit.completed && (
+                                        {habit.completedToday && (
                                             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                 <path
                                                     fillRule="evenodd"
@@ -194,7 +217,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                                             </svg>
                                         )}
                                     </div>
-                                    <span className={`font-medium ${habit.completed ? "text-muted" : "text-primary"}`}>{habit.name}</span>
+                                    <span className={`font-medium ${habit.completedToday ? "text-muted" : "text-primary"}`}>{habit.name}</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <span className="text-sm text-secondary">{habit.streak} dias</span>

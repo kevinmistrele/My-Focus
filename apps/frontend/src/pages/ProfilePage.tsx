@@ -1,43 +1,101 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
 import { Modal } from "../components/ui/Modal"
+import { UserService } from "../services"
+import {toast} from "sonner";
 
 export const ProfilePage: React.FC = () => {
-    const [user, setUser] = useState({
-        name: "João Silva",
-        email: "joao@exemplo.com",
-        avatar: "",
-        joinDate: new Date("2024-01-15"),
-        stats: {
-            tasksCompleted: 156,
-            pomodoroSessions: 89,
-            totalFocusTime: 2340, // minutes
-            streak: 12,
-        },
-    })
-
+    const [user, setUser] = useState<any | null>(null)
+    const [formData, setFormData] = useState({ name: "", email: "" })
+    const [showPasswordModal, setShowPasswordModal] = useState(false)
+    const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "" })
     const [isEditing, setIsEditing] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
-    const [formData, setFormData] = useState({
-        name: user.name,
-        email: user.email,
-    })
 
-    const handleSave = () => {
-        setUser((prev) => ({ ...prev, ...formData }))
-        setIsEditing(false)
+    // Estados para os novos modais
+    const [showTermsModal, setShowTermsModal] = useState(false)
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+    const [showLGPDModal, setShowLGPDModal] = useState(false)
+
+    useEffect(() => {
+        fetchUser()
+    }, [])
+
+    const fetchUser = async () => {
+        try {
+            const data = await UserService.getCurrent()
+            if (!data || !data.createdAt) {
+                toast.error("Erro: dados de usuário inválidos.")
+                return
+            }
+
+            const stats = await UserService.getStats()
+            setUser({
+                ...data,
+                joinDate: new Date(data.createdAt),
+                stats,
+            })
+
+            setFormData({ name: data.name, email: data.email })
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao carregar dados do usuário.")
+        }
     }
 
-    const handleDeleteAccount = () => {
-        // Aqui você implementaria a lógica de exclusão
-        console.log("Conta excluída")
-        setShowDeleteModal(false)
+
+    const handleSave = async () => {
+        try {
+            await UserService.updateCurrent(formData)
+            setUser((prev: any) => ({
+                ...prev,
+                name: formData.name,
+                email: formData.email,
+            }))
+            toast.success("Perfil atualizado com sucesso!")
+            setIsEditing(false)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao atualizar perfil.")
+        }
     }
+
+
+    const handleDeleteAccount = async () => {
+        try {
+            await UserService.deleteCurrent()
+            toast.success("Conta excluída com sucesso.")
+            setShowDeleteModal(false)
+            window.location.href = "/login"
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao excluir conta.")
+        }
+    }
+
+
+    const exportUserData = () => {
+        if (!user) return
+        const blob = new Blob([JSON.stringify(user, null, 2)], { type: "application/json" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = "meus-dados.json"
+        link.click()
+        URL.revokeObjectURL(url)
+    }
+
+    if (!user) {
+        return <div className="text-center text-secondary mt-10">Carregando perfil...</div>
+    }
+
+
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -114,7 +172,7 @@ export const ProfilePage: React.FC = () => {
                                     <h4 className="font-medium text-primary">Exportar Dados</h4>
                                     <p className="text-sm text-secondary">Baixe todos os seus dados em formato JSON</p>
                                 </div>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" onClick={exportUserData}>
                                     Exportar
                                 </Button>
                             </div>
@@ -124,7 +182,7 @@ export const ProfilePage: React.FC = () => {
                                     <h4 className="font-medium text-primary">Alterar Senha</h4>
                                     <p className="text-sm text-secondary">Atualize sua senha de acesso</p>
                                 </div>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" onClick={() => setShowPasswordModal(true)}>
                                     Alterar
                                 </Button>
                             </div>
@@ -145,19 +203,28 @@ export const ProfilePage: React.FC = () => {
                     <Card>
                         <h3 className="text-lg font-semibold text-primary mb-4">Legal</h3>
                         <div className="space-y-3">
-                            <button className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors">
+                            <button
+                                className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors"
+                                onClick={() => setShowTermsModal(true)}
+                            >
                                 <span className="text-secondary">Termos de Uso</span>
                                 <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
-                            <button className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors">
+                            <button
+                                className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors"
+                                onClick={() => setShowPrivacyModal(true)}
+                            >
                                 <span className="text-secondary">Política de Privacidade</span>
                                 <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
-                            <button className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors">
+                            <button
+                                className="flex items-center justify-between w-full p-3 hover:bg-surface-light rounded-lg transition-colors"
+                                onClick={() => setShowLGPDModal(true)}
+                            >
                                 <span className="text-secondary">LGPD - Proteção de Dados</span>
                                 <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -237,6 +304,216 @@ export const ProfilePage: React.FC = () => {
                             Cancelar
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Password Change Modal */}
+            <Modal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} title="Alterar Senha">
+                <div className="space-y-4">
+                    <Input
+                        label="Senha Atual"
+                        type="password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData((p) => ({ ...p, currentPassword: e.target.value }))}
+                    />
+                    <Input
+                        label="Nova Senha"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData((p) => ({ ...p, newPassword: e.target.value }))}
+                    />
+                    <div className="flex justify-end space-x-2">
+                        <Button variant="ghost" onClick={() => setShowPasswordModal(false)}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                try {
+                                    await UserService.changePassword(passwordData)
+                                    toast.success("Senha alterada com sucesso!")
+                                    setShowPasswordModal(false)
+                                    setPasswordData({ currentPassword: "", newPassword: "" })
+                                } catch (e) {
+                                    toast.error("Erro ao alterar senha.")
+                                }
+                            }}
+                        >
+                            Salvar
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Terms of Use Modal */}
+            <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} title="Termos de Uso" size="lg">
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                    <div className="prose prose-sm text-secondary">
+                        <h3 className="text-primary font-semibold">1. Aceitação dos Termos</h3>
+                        <p>
+                            Ao utilizar o MyFocus, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não
+                            concordar com qualquer parte destes termos, não deve usar nosso serviço.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">2. Descrição do Serviço</h3>
+                        <p>
+                            O MyFocus é uma plataforma de produtividade que oferece ferramentas para gerenciamento de tarefas, técnica
+                            Pomodoro, controle de hábitos e definição de metas pessoais.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">3. Conta do Usuário</h3>
+                        <p>
+                            Você é responsável por manter a confidencialidade de sua conta e senha. Você concorda em aceitar a
+                            responsabilidade por todas as atividades que ocorrem sob sua conta.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">4. Uso Aceitável</h3>
+                        <p>
+                            Você concorda em usar o serviço apenas para fins legais e de acordo com estes Termos. É proibido usar o
+                            serviço para qualquer atividade ilegal ou não autorizada.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">5. Propriedade Intelectual</h3>
+                        <p>
+                            O serviço e seu conteúdo original são e permanecerão propriedade exclusiva do MyFocus. O serviço é
+                            protegido por direitos autorais, marcas registradas e outras leis.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">6. Limitação de Responsabilidade</h3>
+                        <p>
+                            Em nenhuma circunstância o MyFocus será responsável por danos indiretos, incidentais, especiais,
+                            consequenciais ou punitivos resultantes do uso do serviço.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">7. Modificações</h3>
+                        <p>
+                            Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entrarão em vigor
+                            imediatamente após a publicação.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t border-custom">
+                    <Button onClick={() => setShowTermsModal(false)}>Fechar</Button>
+                </div>
+            </Modal>
+
+            {/* Privacy Policy Modal */}
+            <Modal
+                isOpen={showPrivacyModal}
+                onClose={() => setShowPrivacyModal(false)}
+                title="Política de Privacidade"
+                size="lg"
+            >
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                    <div className="prose prose-sm text-secondary">
+                        <h3 className="text-primary font-semibold">1. Informações que Coletamos</h3>
+                        <p>
+                            Coletamos informações que você nos fornece diretamente, como nome, email, dados de tarefas, metas e
+                            preferências de uso da plataforma.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">2. Como Usamos suas Informações</h3>
+                        <p>Utilizamos suas informações para:</p>
+                        <ul className="list-disc list-inside ml-4">
+                            <li>Fornecer e melhorar nossos serviços</li>
+                            <li>Personalizar sua experiência</li>
+                            <li>Comunicar atualizações e novidades</li>
+                            <li>Garantir a segurança da plataforma</li>
+                        </ul>
+
+                        <h3 className="text-primary font-semibold">3. Compartilhamento de Informações</h3>
+                        <p>
+                            Não vendemos, trocamos ou transferimos suas informações pessoais para terceiros, exceto quando necessário
+                            para fornecer o serviço ou quando exigido por lei.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">4. Segurança dos Dados</h3>
+                        <p>
+                            Implementamos medidas de segurança adequadas para proteger suas informações pessoais contra acesso não
+                            autorizado, alteração, divulgação ou destruição.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">5. Cookies e Tecnologias Similares</h3>
+                        <p>
+                            Utilizamos cookies e tecnologias similares para melhorar sua experiência, analisar o uso do serviço e
+                            personalizar conteúdo.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">6. Seus Direitos</h3>
+                        <p>
+                            Você tem o direito de acessar, atualizar, corrigir ou excluir suas informações pessoais. Entre em contato
+                            conosco para exercer esses direitos.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">7. Alterações na Política</h3>
+                        <p>
+                            Podemos atualizar esta política periodicamente. Notificaremos sobre mudanças significativas através do
+                            serviço ou por email.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t border-custom">
+                    <Button onClick={() => setShowPrivacyModal(false)}>Fechar</Button>
+                </div>
+            </Modal>
+
+            {/* LGPD Modal */}
+            <Modal isOpen={showLGPDModal} onClose={() => setShowLGPDModal(false)} title="LGPD - Proteção de Dados" size="lg">
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                    <div className="prose prose-sm text-secondary">
+                        <h3 className="text-primary font-semibold">1. Compromisso com a LGPD</h3>
+                        <p>
+                            O MyFocus está comprometido com a proteção de dados pessoais em conformidade com a Lei Geral de Proteção
+                            de Dados (LGPD - Lei nº 13.709/2018).
+                        </p>
+
+                        <h3 className="text-primary font-semibold">2. Base Legal para Tratamento</h3>
+                        <p>Tratamos seus dados pessoais com base nas seguintes hipóteses legais:</p>
+                        <ul className="list-disc list-inside ml-4">
+                            <li>Consentimento do titular</li>
+                            <li>Execução de contrato</li>
+                            <li>Legítimo interesse</li>
+                            <li>Cumprimento de obrigação legal</li>
+                        </ul>
+
+                        <h3 className="text-primary font-semibold">3. Seus Direitos como Titular</h3>
+                        <p>Conforme a LGPD, você possui os seguintes direitos:</p>
+                        <ul className="list-disc list-inside ml-4">
+                            <li>Confirmação da existência de tratamento</li>
+                            <li>Acesso aos dados</li>
+                            <li>Correção de dados incompletos, inexatos ou desatualizados</li>
+                            <li>Anonimização, bloqueio ou eliminação de dados</li>
+                            <li>Portabilidade dos dados</li>
+                            <li>Eliminação dos dados tratados com consentimento</li>
+                            <li>Revogação do consentimento</li>
+                        </ul>
+
+                        <h3 className="text-primary font-semibold">4. Encarregado de Dados</h3>
+                        <p>
+                            Nosso Encarregado de Proteção de Dados (DPO) está disponível para esclarecer dúvidas e receber
+                            solicitações relacionadas ao tratamento de dados pessoais.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">5. Retenção de Dados</h3>
+                        <p>
+                            Mantemos seus dados pessoais apenas pelo tempo necessário para as finalidades informadas, respeitando os
+                            prazos legais de retenção.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">6. Transferência Internacional</h3>
+                        <p>
+                            Caso haja transferência internacional de dados, garantimos que será feita apenas para países com nível
+                            adequado de proteção ou mediante garantias apropriadas.
+                        </p>
+
+                        <h3 className="text-primary font-semibold">7. Contato</h3>
+                        <p>
+                            Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados, entre em contato através do
+                            email: privacidade@myfocus.com
+                        </p>
+                    </div>
+                </div>
+                <div className="flex justify-end pt-4 border-t border-custom">
+                    <Button onClick={() => setShowLGPDModal(false)}>Fechar</Button>
                 </div>
             </Modal>
         </div>

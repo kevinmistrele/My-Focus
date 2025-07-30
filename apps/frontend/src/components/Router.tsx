@@ -7,13 +7,14 @@ import { GoalsPage } from "../pages/GoalsPage"
 import { HabitsPage } from "../pages/HabitsPage"
 import { NotesPage } from "../pages/NotesPage"
 import { ProfilePage } from "../pages/ProfilePage"
-import { PreferencesPage } from "../pages/PreferencesPage"
 import { PomodoroPage } from "../pages/PomodoPage"
 import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage"
 import { AdminUsersPage } from "../pages/admin/AdminUsersPage"
 import { AdminLogsPage } from "../pages/admin/AdminLogsPage"
 import type { Route } from "../lib/router"
 import type { User } from "../lib/types"
+import {QuotesPage} from "../pages/QuotesPage.tsx";
+import {MoodPage} from "../pages/MoodPage.tsx";
 
 interface RouterProps {
     currentPath: Route
@@ -36,14 +37,16 @@ export const Router: React.FC<RouterProps> = ({ currentPath, onNavigate, user })
                 return <GoalsPage />
             case "/habits":
                 return <HabitsPage />
+            case "/quotes":
+                return <QuotesPage />
+            case "/mood":
+                return <MoodPage />
             case "/notes":
                 return <NotesPage />
             case "/profile":
                 return <ProfilePage />
-            case "/preferences":
-                return <PreferencesPage />
             case "/admin/dashboard":
-                return isAdmin ? <AdminDashboardPage /> : <UnauthorizedPage />
+                return isAdmin ? <AdminDashboardPage onNavigate={onNavigate} /> : <UnauthorizedPage />
             case "/admin/users":
                 return isAdmin ? <AdminUsersPage /> : <UnauthorizedPage />
             case "/admin/logs":

@@ -49,21 +49,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDe
 
                         <div className="flex items-center space-x-4 mt-3">
                             <div className="flex items-center space-x-2">
-                                <div className={`w-2 h-2 rounded-full ${priorityColors[task.priority]}`} />
+                                <div className={`w-2 h-2 rounded-full ${priorityColors[task.priority] ?? "bg-gray-400"}`} />
                                 <span className="text-xs text-muted capitalize">{task.priority}</span>
                             </div>
 
-                            {task.dueDate && <span className="text-xs text-muted">{formatDate(task.dueDate)}</span>}
+                            {task.dueDate && <span className="text-xs text-muted">{formatDate(new Date(task.dueDate))}</span>}
 
-                            {task.tags.length > 0 && (
+                            {(task.tags ?? []).length > 0 && (
                                 <div className="flex space-x-1">
-                                    {task.tags.map((tag) => (
+                                    {(task.tags ?? []).map((tag) => (
                                         <span key={tag} className="px-2 py-1 bg-surface-light text-xs rounded-full text-secondary">
-                      {tag}
-                    </span>
+        {tag}
+      </span>
                                     ))}
                                 </div>
                             )}
+
                         </div>
                     </div>
                 </div>

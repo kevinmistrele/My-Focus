@@ -104,10 +104,10 @@ const config = {
     "name": "client",
     "provider": {
       "fromEnvVar": null,
-      "value": "prisma-client-js"
+      "value": "prismas-client-js"
     },
     "output": {
-      "value": "D:\\pessoal\\myfocus\\src\\generated\\prisma",
+      "value": "D:\\pessoal\\myfocus\\src\\generated\\prismas",
       "fromEnvVar": null
     },
     "config": {
@@ -121,14 +121,14 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\pessoal\\myfocus\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\pessoal\\myfocus\\prismas\\schema.prismas",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
     "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env.frontend.backend"
+    "schemaEnvPath": "../../../.env.backend"
   },
-  "relativePath": "../../../prisma",
+  "relativePath": "../../../prismas",
   "clientVersion": "6.12.0",
   "engineVersion": "8047c96bbd92db98a2abc7c9323ce77c02c89dbc",
   "datasourceNames": [
@@ -143,7 +143,7 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prismas-client-js\"\n  output   = \"../src/generated/prismas\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n",
   "inlineSchemaHash": "f4defb510352aeb258e32fd0e4e744b44176032e921a554a415dd34c135bd53c",
   "copyEngine": true
 }

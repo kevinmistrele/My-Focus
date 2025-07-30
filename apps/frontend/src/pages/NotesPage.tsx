@@ -1,77 +1,97 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
+import type {Note} from "../lib/types.ts";
+import {NoteService} from "../services/notes.service.ts";
+import { toast } from "sonner"
 
-interface Note {
-    id: string
-    title: string
-    content: string
-    color: string
-    pinned: boolean
-    createdAt: Date
-    updatedAt: Date
-}
+
 
 export const NotesPage: React.FC = () => {
-    const [notes, setNotes] = useState<Note[]>([
-        {
-            id: "1",
-            title: "Ideias para o projeto",
-            content: "- Implementar dark mode\n- Adicionar notificações push\n- Melhorar UX do dashboard",
-            color: "bg-yellow-200",
-            pinned: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        },
-        {
-            id: "2",
-            title: "Lista de compras",
-            content: "Leite, Pão, Ovos, Frutas, Café",
-            color: "bg-green-200",
-            pinned: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        },
-        {
-            id: "3",
-            title: "Reunião de equipe",
-            content: "Discutir roadmap do Q1\nRevisar métricas\nPlanejar sprint",
-            color: "bg-blue-200",
-            pinned: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        },
-    ])
+    const [notes, setNotes] = useState<Note[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+
 
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedColor, setSelectedColor] = useState("bg-yellow-200")
 
     const colors = ["bg-yellow-200", "bg-green-200", "bg-blue-200", "bg-pink-200", "bg-purple-200", "bg-orange-200"]
 
-    const addNote = () => {
-        const newNote: Note = {
-            id: Date.now().toString(),
-            title: "Nova anotação",
-            content: "",
-            color: selectedColor,
-            pinned: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+    useEffect(() => {
+        const fetchNotes = async () => {
+            try {
+                const res = await NoteService.getAll()
+                const parsed = res.map(note => ({
+                    ...note,
+                    createdAt: new Date(note.createdAt),
+                    updatedAt: new Date(note.updatedAt),
+                }))
+                setNotes(parsed)
+            } catch (error) {
+                toast.error("Erro ao carregar anotações.")
+            }
+            finally {
+                setIsLoading(false)
+            }
         }
-        setNotes([newNote, ...notes])
+
+        fetchNotes()
+    }, [])
+
+    const addNote = async () => {
+        try {
+            const created = await NoteService.create({
+                title: "Nova anotação",
+                content: "",
+                color: selectedColor,
+                pinned: false,
+            })
+
+            const newNote = {
+                ...created,
+                createdAt: new Date(created.createdAt),
+                updatedAt: new Date(created.updatedAt),
+            }
+
+            setNotes([newNote, ...notes])
+            toast.success("Anotação criada com sucesso.")
+        } catch (err) {
+            toast.success("Anotação criada com sucesso.")
+        }
     }
 
-    const updateNote = (id: string, updates: Partial<Note>) => {
-        setNotes(notes.map((note) => (note.id === id ? { ...note, ...updates, updatedAt: new Date() } : note)))
+
+    const updateNote = async (id: string, updates: Partial<Note>) => {
+        try {
+            await NoteService.update(id, updates)
+            setNotes(notes.map((note) =>
+                note.id === id
+                    ? { ...note, ...updates, updatedAt: new Date() }
+                    : note
+            ))
+            toast.success("Anotação atualizada.")
+        } catch (err) {
+            toast.error("Erro ao atualizar anotação.")
+        }
     }
 
-    const deleteNote = (id: string) => {
-        setNotes(notes.filter((note) => note.id !== id))
+
+
+    const deleteNote = async (id: string) => {
+        try {
+            await NoteService.delete(id)
+            setNotes(notes.filter((note) => note.id !== id))
+            toast.success("Anotação removida.")
+        } catch (err) {
+            toast.error("Erro ao deletar anotação.")
+        }
     }
+
+
 
     const togglePin = (id: string) => {
         updateNote(id, { pinned: !notes.find((n) => n.id === id)?.pinned })
@@ -105,7 +125,7 @@ export const NotesPage: React.FC = () => {
                             />
                         ))}
                     </div>
-                    <Button onClick={addNote} className="shadow-purple">
+                    <Button onClick={addNote} disabled={notes.length >= 10} className="shadow-purple">
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>

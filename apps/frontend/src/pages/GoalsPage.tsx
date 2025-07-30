@@ -1,73 +1,107 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { GoalModal } from "../components/goals/GoalModal"
+import type {Goal} from "../lib/types.ts";
+import {GoalService} from "../services";
+import {toast} from "sonner";
 
-interface Goal {
-    id: string
-    title: string
-    description: string
-    type: "short" | "long"
-    category: string
-    targetDate: Date
-    progress: number
-    completed: boolean
-    createdAt: Date
-}
 
 export const GoalsPage: React.FC = () => {
-    const [goals, setGoals] = useState<Goal[]>([
-        {
-            id: "1",
-            title: "Ler 12 livros este ano",
-            description: "Desenvolver o hábito de leitura regular",
-            type: "long",
-            category: "Desenvolvimento Pessoal",
-            targetDate: new Date("2024-12-31"),
-            progress: 25,
-            completed: false,
-            createdAt: new Date(),
-        },
-        {
-            id: "2",
-            title: "Completar curso de React",
-            description: "Finalizar todas as aulas e projetos práticos",
-            type: "short",
-            category: "Carreira",
-            targetDate: new Date("2024-02-15"),
-            progress: 75,
-            completed: false,
-            createdAt: new Date(),
-        },
-    ])
-
+    const [goals, setGoals] = useState<Goal[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
     const [filter, setFilter] = useState<"all" | "short" | "long">("all")
+    const hasReachedLimit = goals.length >= 8
+
+
+    const fetchGoals = async () => {
+        try {
+            const res = await GoalService.getAll()
+
+            const parsed: Goal[] = Array.isArray(res)
+                ? res
+                    .filter((goal) => goal && goal.targetDate)
+                    .map((goal, index) => {
+                        console.log(`Meta #${index}:`, goal)
+                        return {
+                            ...goal,
+                            targetDate: goal?.targetDate ? new Date(goal.targetDate) : null,
+                            createdAt: goal?.createdAt ? new Date(goal.createdAt) : new Date(),
+                        }
+                    })
+                : []
+
+            console.log("Metas parseadas:", parsed)
+            setGoals(parsed)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao carregar metas.")
+        }
+    }
+
+    useEffect(() => {
+        fetchGoals()
+    }, [])
+
+
+    const handleProgressChange = async (goalId: string, newProgress: number) => {
+        try {
+            const updated = await GoalService.update(goalId, { progress: newProgress })
+            setGoals((prev) =>
+                prev.map((g) =>
+                    g.id === goalId ? { ...g, progress: newProgress } : g
+                )
+            )
+            toast.success("Progresso atualizado!")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao atualizar progresso.")
+        }
+    }
+
+
+
+
+    const handleSaveGoal = async (goalData: Goal) => {
+        try {
+            if (editingGoal) {
+                const updated = await GoalService.update(goalData.id, goalData)
+                setGoals((prev) =>
+                    prev.map((g) => (g.id === goalData.id ? { ...updated.data, targetDate: new Date(updated.data.targetDate) } : g))
+                )
+                toast.success("Meta atualizada com sucesso!")
+            } else {
+                const created = await GoalService.create(goalData)
+                const goal = created.data
+                await fetchGoals()
+                toast.success("Meta criada com sucesso!")
+
+
+            }
+        } catch (err) {
+            toast.error("Erro ao salvar meta.")
+        } finally {
+            setEditingGoal(null)
+            setIsModalOpen(false)
+        }
+    }
+
+    const handleDelete = async (goalId: string) => {
+        try {
+            await GoalService.delete(goalId)
+            setGoals((prev) => prev.filter((g) => g.id !== goalId))
+            toast.success("Meta excluída com sucesso!")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (err) {
+            toast.error("Erro ao excluir meta.")
+        }
+    }
 
     const filteredGoals = goals.filter((goal) => filter === "all" || goal.type === filter)
-
-    const handleSaveGoal = (goalData: Goal) => {
-        if (editingGoal) {
-            setGoals(goals.map((goal) => (goal.id === goalData.id ? goalData : goal)))
-        } else {
-            setGoals([goalData, ...goals])
-        }
-        setEditingGoal(null)
-    }
-
-    const handleEditGoal = (goal: Goal) => {
-        setEditingGoal(goal)
-        setIsModalOpen(true)
-    }
-
-    const handleAddGoal = () => {
-        setEditingGoal(null)
-        setIsModalOpen(true)
-    }
 
     const stats = {
         total: goals.length,
@@ -83,8 +117,13 @@ export const GoalsPage: React.FC = () => {
                     <h1 className="text-3xl font-bold text-primary">Metas</h1>
                     <p className="text-secondary mt-1">Defina e acompanhe seus objetivos</p>
                 </div>
-                <Button onClick={handleAddGoal} className="shadow-purple">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <Button
+                    onClick={() => !hasReachedLimit && setIsModalOpen(true)}
+                    disabled={hasReachedLimit}
+                    className="shadow-purple"
+                >
+
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                     Nova Meta
@@ -111,77 +150,95 @@ export const GoalsPage: React.FC = () => {
                 </Card>
             </div>
 
-            {/* Filters */}
+            {/* Filtros */}
             <Card>
                 <div className="flex space-x-2">
                     {[
                         { key: "all", label: "Todas" },
                         { key: "short", label: "Curto Prazo" },
                         { key: "long", label: "Longo Prazo" },
-                    ].map((filterOption) => (
+                    ].map((f) => (
                         <Button
-                            key={filterOption.key}
-                            variant={filter === filterOption.key ? "primary" : "ghost"}
+                            key={f.key}
+                            variant={filter === f.key ? "primary" : "ghost"}
                             size="sm"
-                            onClick={() => setFilter(filterOption.key as any)}
+                            onClick={() => setFilter(f.key as any)}
                         >
-                            {filterOption.label}
+                            {f.label}
                         </Button>
                     ))}
                 </div>
             </Card>
 
-            {/* Goals List */}
+            {/* Lista de metas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredGoals.map((goal) => (
+                {filteredGoals.filter(g => g && g.targetDate !== undefined).map((goal) => (
                     <Card key={goal.id} className="hover:shadow-xl transition-shadow">
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
                                 <div className="flex items-center space-x-2 mb-2">
                                     <h3 className="text-lg font-semibold text-primary">{goal.title}</h3>
-                                    <span
-                                        className={`px-2 py-1 rounded-full text-xs ${
-                                            goal.type === "short" ? "bg-blue-500/20 text-blue-400" : "bg-purple-500/20 text-purple-400"
-                                        }`}
-                                    >
-                    {goal.type === "short" ? "Curto Prazo" : "Longo Prazo"}
-                  </span>
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                        goal.type === "short"
+                                            ? "bg-blue-500/20 text-blue-400"
+                                            : "bg-purple-500/20 text-purple-400"
+                                    }`}>
+                                        {goal.type === "short" ? "Curto Prazo" : "Longo Prazo"}
+                                    </span>
                                 </div>
                                 <p className="text-secondary text-sm mb-3">{goal.description}</p>
                                 <div className="flex items-center space-x-4 text-xs text-muted">
                                     <span>📂 {goal.category}</span>
-                                    <span>📅 {goal.targetDate.toLocaleDateString("pt-BR")}</span>
+                                    <span>
+  📅 {goal.targetDate
+                                        ? new Date(goal.targetDate).toLocaleDateString("pt-BR")
+                                        : "Sem data"}
+</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Progress Bar */}
+                        {/* Progresso */}
                         <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm text-secondary">Progresso</span>
                                 <span className="text-sm font-medium text-primary">{goal.progress}%</span>
                             </div>
                             <div className="w-full bg-surface-light rounded-full h-2">
-                                <div
-                                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${goal.progress}%` }}
-                                />
+                                <div className="bg-primary h-2 rounded-full" style={{ width: `${goal.progress}%` }} />
                             </div>
                         </div>
-
-                        {/* Actions */}
-                        <div className="flex space-x-2">
+                        <div className="flex items-center justify-between mt-2">
                             <Button
-                                variant="outline"
                                 size="sm"
-                                className="flex-1 bg-transparent"
-                                onClick={() => handleEditGoal(goal)}
+                                variant="ghost"
+                                onClick={() => handleProgressChange(goal.id, Math.max(0, goal.progress - 10))}
+                                disabled={goal.progress <= 0}
                             >
+                                -10%
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleProgressChange(goal.id, Math.min(100, goal.progress + 10))}
+                                disabled={goal.progress >= 100}
+                            >
+                                +10%
+                            </Button>
+                        </div>
+
+
+                        {/* Ações */}
+                        <div className="flex space-x-2">
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                                setEditingGoal(goal)
+                                setIsModalOpen(true)
+                            }}>
                                 Editar
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(goal.id)}>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </Button>
                         </div>
@@ -200,7 +257,6 @@ export const GoalsPage: React.FC = () => {
                 </Card>
             )}
 
-            {/* Goal Modal */}
             <GoalModal
                 isOpen={isModalOpen}
                 onClose={() => {

@@ -4,5 +4,8 @@
   "scripts": {
     "dev:front": "npm --prefix apps/frontend run dev",
     "dev:back": "npm --prefix apps/backend run dev"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.12.0"
   }
 }

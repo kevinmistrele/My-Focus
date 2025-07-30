@@ -7,6 +7,7 @@ import { Button } from "../ui/Button"
 import { Input } from "../ui/Input"
 import type { Task } from "../../lib/types"
 import { generateId } from "../../lib/utils"
+import {toast} from "sonner";
 
 interface TaskModalProps {
     isOpen: boolean
@@ -29,8 +30,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, t
             setFormData({
                 title: task.title,
                 description: task.description || "",
-                priority: task.priority,
-                tags: [...task.tags],
+                priority: task.priority ?? "medium",
+                tags: Array.isArray(task.tags) ? [...task.tags] : [],
                 tagInput: "",
             })
         } else {
@@ -47,7 +48,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, t
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!formData.title.trim()) return
+        if (!formData.title.trim()) {
+            toast.error("O título da tarefa é obrigatório.")
+            return
+        }
 
         const taskData: Task = {
             id: task?.id || generateId(),
@@ -61,8 +65,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, t
         }
 
         onSave(taskData)
+        toast.success(task ? "Tarefa atualizada com sucesso!" : "Nova tarefa criada com sucesso!")
         onClose()
     }
+
 
     const handleAddTag = () => {
         const newTag = formData.tagInput.trim().toLowerCase()
@@ -158,17 +164,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, t
                                     key={tag}
                                     className="inline-flex items-center px-3 py-1 bg-primary bg-opacity-20 text-primary rounded-full text-sm"
                                 >
-                  {tag}
+                                    {tag}
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveTag(tag)}
                                         className="ml-2 text-primary hover:text-primary-dark"
                                     >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </span>
                             ))}
                         </div>
                     )}

@@ -6,6 +6,7 @@ import { Card } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
 import { Input } from "../../components/ui/Input"
 import type { ActivityLog } from "../../lib/types"
+import {LogsService} from "../../services";
 
 export const AdminLogsPage: React.FC = () => {
     const [logs, setLogs] = useState<ActivityLog[]>([])
@@ -13,128 +14,78 @@ export const AdminLogsPage: React.FC = () => {
     const [filter, setFilter] = useState<"all" | "user" | "task" | "pomodoro" | "system">("all")
     const [searchTerm, setSearchTerm] = useState("")
     const [isLoading, setIsLoading] = useState(true)
+    const [limit, setLimit] = useState(10)
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const [totalLogs, setTotalLogs] = useState(0)
+
+    const [logCountsByType, setLogCountsByType] = useState({
+        user: 0,
+        task: 0,
+        pomodoro: 0,
+        system: 0,
+    })
+
+
+
+    const fetchLogs = async (currentPage = 1) => {
+        try {
+            const response = await LogsService.getAll({ page: currentPage, limit })
+            const { data, total, totalByType  } = response
+            setTotalLogs(total)
+            if (totalByType) setLogCountsByType(totalByType)
+
+
+            const mappedLogs = data.map((log: any) => ({
+                id: log.id,
+                userId: log.userId,
+                userName: log.userName || "Desconhecido",
+                action: log.action || "",
+                details: log.details || "",
+                timestamp: new Date(log.timestamp),
+                type: log.type || "user",
+            }))
+
+            setLogs((prev) => {
+                const prevIds = new Set(prev.map((l) => l.id))
+                const newUniqueLogs = mappedLogs.filter((l) => !prevIds.has(l.id))
+                const combined = [...prev, ...newUniqueLogs]
+                setHasMore(combined.length < total)
+                return combined
+            })
+
+            setHasMore(logs.length + mappedLogs.length < total)
+        } catch (error) {
+            console.error("Erro ao buscar logs:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     useEffect(() => {
-        // Simulate API call to fetch logs
-        setTimeout(() => {
-            const mockLogs: ActivityLog[] = [
-                {
-                    id: "1",
-                    userId: "1",
-                    userName: "João Silva",
-                    action: "Login realizado",
-                    details: "Usuário fez login no sistema",
-                    timestamp: new Date(Date.now() - 5 * 60 * 1000),
-                    type: "user",
-                },
-                {
-                    id: "2",
-                    userId: "2",
-                    userName: "Maria Santos",
-                    action: "Tarefa criada",
-                    details: "Criou a tarefa 'Revisar código do projeto'",
-                    timestamp: new Date(Date.now() - 10 * 60 * 1000),
-                    type: "task",
-                },
-                {
-                    id: "3",
-                    userId: "1",
-                    userName: "João Silva",
-                    action: "Sessão Pomodoro concluída",
-                    details: "Completou sessão de 25 minutos",
-                    timestamp: new Date(Date.now() - 15 * 60 * 1000),
-                    type: "pomodoro",
-                },
-                {
-                    id: "4",
-                    userId: "3",
-                    userName: "Pedro Costa",
-                    action: "Perfil atualizado",
-                    details: "Alterou configurações de preferências",
-                    timestamp: new Date(Date.now() - 20 * 60 * 1000),
-                    type: "user",
-                },
-                {
-                    id: "5",
-                    userId: "system",
-                    userName: "Sistema",
-                    action: "Backup automático",
-                    details: "Backup diário dos dados realizado com sucesso",
-                    timestamp: new Date(Date.now() - 30 * 60 * 1000),
-                    type: "system",
-                },
-                {
-                    id: "6",
-                    userId: "2",
-                    userName: "Maria Santos",
-                    action: "Usuário promovido",
-                    details: "Usuário promovido para administrador",
-                    timestamp: new Date(Date.now() - 45 * 60 * 1000),
-                    type: "user",
-                },
-                {
-                    id: "7",
-                    userId: "1",
-                    userName: "João Silva",
-                    action: "Meta criada",
-                    details: "Criou nova meta: 'Ler 12 livros este ano'",
-                    timestamp: new Date(Date.now() - 60 * 60 * 1000),
-                    type: "task",
-                },
-                {
-                    id: "8",
-                    userId: "3",
-                    userName: "Pedro Costa",
-                    action: "Hábito completado",
-                    details: "Marcou hábito 'Exercitar-se' como concluído",
-                    timestamp: new Date(Date.now() - 75 * 60 * 1000),
-                    type: "task",
-                },
-                {
-                    id: "9",
-                    userId: "system",
-                    userName: "Sistema",
-                    action: "Limpeza de logs",
-                    details: "Logs antigos removidos automaticamente",
-                    timestamp: new Date(Date.now() - 90 * 60 * 1000),
-                    type: "system",
-                },
-                {
-                    id: "10",
-                    userId: "2",
-                    userName: "Maria Santos",
-                    action: "Sessão Pomodoro iniciada",
-                    details: "Iniciou sessão de foco de 30 minutos",
-                    timestamp: new Date(Date.now() - 105 * 60 * 1000),
-                    type: "pomodoro",
-                },
-            ]
-            setLogs(mockLogs)
-            setFilteredLogs(mockLogs)
-            setIsLoading(false)
-        }, 1000)
+        fetchLogs(1)
     }, [])
 
     useEffect(() => {
         let filtered = logs
 
-        // Filter by type
         if (filter !== "all") {
             filtered = filtered.filter((log) => log.type === filter)
         }
 
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(
-                (log) =>
-                    log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    log.details.toLowerCase().includes(searchTerm.toLowerCase()),
+        if (searchTerm.trim()) {
+            filtered = filtered.filter((log) =>
+                log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                log.details.toLowerCase().includes(searchTerm.toLowerCase())
             )
         }
 
         setFilteredLogs(filtered)
     }, [logs, filter, searchTerm])
+
+    console.log('logs:', logs)
+
 
     const getLogIcon = (type: string) => {
         switch (type) {
@@ -261,31 +212,31 @@ export const AdminLogsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">{logs.length}</div>
+                        <div className="text-2xl font-bold text-primary">{totalLogs}</div>
                         <div className="text-sm text-secondary">Total de Logs</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-500">{logs.filter((l) => l.type === "user").length}</div>
+                        <div className="text-2xl font-bold text-blue-500">{logCountsByType.user}</div>
                         <div className="text-sm text-secondary">Usuário</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-green-500">{logs.filter((l) => l.type === "task").length}</div>
+                        <div className="text-2xl font-bold text-green-500">{logCountsByType.task}</div>
                         <div className="text-sm text-secondary">Tarefas</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-500">{logs.filter((l) => l.type === "pomodoro").length}</div>
+                        <div className="text-2xl font-bold text-purple-500">{logCountsByType.pomodoro}</div>
                         <div className="text-sm text-secondary">Pomodoro</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-500">{logs.filter((l) => l.type === "system").length}</div>
+                        <div className="text-2xl font-bold text-orange-500">{logCountsByType.system}</div>
                         <div className="text-sm text-secondary">Sistema</div>
                     </div>
                 </Card>
@@ -377,7 +328,15 @@ export const AdminLogsPage: React.FC = () => {
             {/* Load More */}
             {filteredLogs.length > 0 && (
                 <div className="text-center">
-                    <Button variant="outline" className="bg-transparent">
+                    <Button
+                        variant="outline"
+                        className="bg-transparent"
+                        onClick={() => {
+                            const nextPage = page + 1
+                            setPage(nextPage)
+                            fetchLogs(nextPage)
+                        }}
+                    >
                         Carregar mais logs
                     </Button>
                 </div>

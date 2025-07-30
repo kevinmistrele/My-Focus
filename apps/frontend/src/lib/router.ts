@@ -5,8 +5,9 @@ export type Route =
     | "/goals"
     | "/habits"
     | "/notes"
+    | "/quotes"
+    | "/mood"
     | "/profile"
-    | "/preferences"
     | "/calendar"
     | "/analytics"
     | "/settings"
@@ -29,8 +30,9 @@ export const routes: RouteConfig[] = [
     { path: "/goals", label: "Metas", icon: "🎯" },
     { path: "/habits", label: "Hábitos", icon: "⚡" },
     { path: "/notes", label: "Anotações", icon: "📄" },
+    { path: "/quotes", label: "Frases Motivacionais", icon: "💭" },
+    { path: "/mood", label: "Registro de Humor", icon: "😊" },
     { path: "/profile", label: "Perfil", icon: "👤" },
-    { path: "/preferences", label: "Preferências", icon: "⚙️" },
 ]
 
 export const adminRoutes: RouteConfig[] = [

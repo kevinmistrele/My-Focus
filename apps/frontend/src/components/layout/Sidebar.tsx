@@ -3,6 +3,7 @@
 import type React from "react"
 import type { Route } from "../../lib/router"
 import type { User } from "../../lib/types"
+import {useAuth} from "../../contexts/AuthContext.tsx";
 
 interface SidebarProps {
     isOpen: boolean
@@ -11,13 +12,17 @@ interface SidebarProps {
     user: User
 }
 
+
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigate, user }) => {
+    const { logout } = useAuth()
     const menuItems = [
         { path: "/dashboard", label: "Dashboard", icon: "📊" },
         { path: "/tasks", label: "Tarefas", icon: "✅" },
         { path: "/goals", label: "Metas", icon: "🎯" },
+        { path: "/mood", label: "Registro de Humor", icon: "😊" },
+        { path: "/quotes", label: "Frases Motivacionais", icon: "💭" },
         { path: "/habits", label: "Hábitos", icon: "🔄" },
-        { path: "/pomodo", label: "Pomodoro", icon: "⏰" },
+        { path: "/pomodoro", label: "Pomodoro", icon: "⏰" },
         { path: "/notes", label: "Notas", icon: "📝" },
     ]
 
@@ -29,7 +34,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
 
     const profileItems = [
         { path: "/profile", label: "Perfil", icon: "👤" },
-        { path: "/preferences", label: "Preferências", icon: "⚙️" },
     ]
 
     return (
@@ -117,6 +121,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
 
                     {/* Footer */}
                     <div className="p-4 border-t border-custom">
+                        <button
+                            onClick={logout}
+                            className="w-full flex items-center space-x-2 px-4 py-2 rounded-lg text-left text-secondary hover:text-red-500 hover:bg-red-500/10 transition-all"
+                        >
+                            <span className="text-lg">🚪</span>
+                            <span className="font-medium">Sair</span>
+                        </button>
                         <div className="flex items-center justify-between text-sm text-muted">
                             <span>MyFocus v1.0</span>
                             <button className="p-2 rounded-lg hover:bg-surface-light transition-colors">
