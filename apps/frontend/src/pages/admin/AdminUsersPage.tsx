@@ -85,8 +85,21 @@ export const AdminUsersPage: React.FC = () => {
         if (!newUser.name || !newUser.email || !newUser.password) return
 
         try {
-            const res = await UserService.create(newUser)
-            setUsers((prev) => [res.data, ...prev])
+            const createdUserRaw = await UserService.create(newUser)
+
+            if (!createdUserRaw) {
+                console.error("Resposta da API está vazia")
+                return
+            }
+
+            const createdUser: User = {
+                ...createdUserRaw,
+                type: (createdUserRaw.type || "user").toLowerCase(),
+                createdAt: new Date(createdUserRaw.createdAt),
+                lastLogin: createdUserRaw.lastLogin ? new Date(createdUserRaw.lastLogin) : null,
+            }
+
+            setUsers((prev) => [createdUser, ...prev])
             setNewUser({ name: "", email: "", password: "", type: "user" })
             setIsCreateModalOpen(false)
         } catch (err) {
@@ -98,23 +111,6 @@ export const AdminUsersPage: React.FC = () => {
     useEffect(() => {
         fetchUsers(currentPage)
     }, [currentPage])
-
-
-    const handleToggleUserType = (user: User) => {
-        const newType = user.type === "admin" ? "user" : "admin"
-        const actionText = newType === "admin" ? "promover para administrador" : "rebaixar para usuário comum"
-
-        setConfirmModal({
-            isOpen: true,
-            title: `${newType === "admin" ? "Promover" : "Rebaixar"} Usuário`,
-            message: `Tem certeza que deseja ${actionText} o usuário "${user.name}"?`,
-            type: "warning",
-            onConfirm: () => {
-                setUsers(users.map((u) => (u.id === user.id ? { ...u, type: newType } : u)))
-                setConfirmModal({ ...confirmModal, isOpen: false })
-            },
-        })
-    }
 
     const handleDeleteUser = (user: User) => {
         setConfirmModal({
@@ -460,17 +456,6 @@ export const AdminUsersPage: React.FC = () => {
 
                         <div className="flex justify-between pt-4">
                             <div className="flex space-x-2">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleToggleUserType(editingUser)}
-                                    className={`bg-transparent ${
-                                        editingUser.type === "admin"
-                                            ? "text-orange-500 border-orange-500"
-                                            : "text-green-500 border-green-500"
-                                    }`}
-                                >
-                                    {editingUser.type === "admin" ? "Rebaixar para Usuário" : "Promover para Admin"}
-                                </Button>
                                 <Button variant="danger" onClick={() => handleDeleteUser(editingUser)}>
                                     Excluir Usuário
                                 </Button>

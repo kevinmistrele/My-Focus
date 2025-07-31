@@ -16,6 +16,10 @@ export const GoalsPage: React.FC = () => {
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
     const [filter, setFilter] = useState<"all" | "short" | "long">("all")
     const hasReachedLimit = goals.length >= 8
+    const [isSaving, setIsSaving] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
+    const [updatingId, setUpdatingId] = useState<string | null>(null)
+
 
 
     const fetchGoals = async () => {
@@ -44,8 +48,8 @@ export const GoalsPage: React.FC = () => {
         fetchGoals()
     }, [])
 
-
     const handleProgressChange = async (goalId: string, newProgress: number) => {
+        setUpdatingId(goalId)
         try {
             await GoalService.update(goalId, { progress: newProgress })
             setGoals((prev) =>
@@ -54,16 +58,20 @@ export const GoalsPage: React.FC = () => {
                 )
             )
             toast.success("Progresso atualizado!")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao atualizar progresso.")
+        } finally {
+            setUpdatingId(null)
         }
     }
 
 
 
 
+
+
     const handleSaveGoal = async (goalData: Goal) => {
+        setIsSaving(true)
         try {
             if (editingGoal) {
                 const updated = await GoalService.update(goalData.id, {
@@ -85,21 +93,27 @@ export const GoalsPage: React.FC = () => {
         } catch (err) {
             toast.error("Erro ao salvar meta.")
         } finally {
+            setIsSaving(false)
             setEditingGoal(null)
             setIsModalOpen(false)
         }
     }
 
+
     const handleDelete = async (goalId: string) => {
+        setDeletingId(goalId)
         try {
             await GoalService.delete(goalId)
             setGoals((prev) => prev.filter((g) => g.id !== goalId))
             toast.success("Meta excluída com sucesso!")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao excluir meta.")
+        } finally {
+            setDeletingId(null)
         }
     }
+
+
 
     const filteredGoals = goals.filter((goal) => filter === "all" || goal.type === filter)
 
@@ -214,6 +228,7 @@ export const GoalsPage: React.FC = () => {
                                 variant="ghost"
                                 onClick={() => handleProgressChange(goal.id, Math.max(0, goal.progress - 10))}
                                 disabled={goal.progress <= 0}
+                                loading={updatingId === goal.id}
                             >
                                 -10%
                             </Button>
@@ -222,6 +237,7 @@ export const GoalsPage: React.FC = () => {
                                 variant="ghost"
                                 onClick={() => handleProgressChange(goal.id, Math.min(100, goal.progress + 10))}
                                 disabled={goal.progress >= 100}
+                                loading={updatingId === goal.id}
                             >
                                 +10%
                             </Button>
@@ -236,11 +252,17 @@ export const GoalsPage: React.FC = () => {
                             }}>
                                 Editar
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(goal.id)}>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(goal.id)}
+                                loading={deletingId === goal.id}
+                            >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </Button>
+
                         </div>
                     </Card>
                 ))}
@@ -265,6 +287,7 @@ export const GoalsPage: React.FC = () => {
                 }}
                 onSave={handleSaveGoal}
                 goal={editingGoal}
+                isLoading={isSaving}
             />
         </div>
     )

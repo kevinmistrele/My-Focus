@@ -13,6 +13,9 @@ import {toast} from "sonner";
 export const HabitsPage: React.FC = () => {
     const [habits, setHabits] = useState<Habit[]>([])
     const [, setIsLoading] = useState(true)
+    const [isSavingHabit, setIsSavingHabit] = useState(false)
+    const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null)
+
     useEffect(() => {
         const fetchHabits = async () => {
             try {
@@ -50,17 +53,18 @@ export const HabitsPage: React.FC = () => {
 
 
     const handleDeleteHabit = async (id: string) => {
-        if (!confirm("Tem certeza que deseja excluir este hábito?")) return;
-
+        setDeletingHabitId(id)
         try {
-            await HabitService.delete(id);
-            setHabits(habits.filter(h => h.id !== id));
+            await HabitService.delete(id)
+            setHabits(habits.filter(h => h.id !== id))
             toast.success("Hábito excluído com sucesso.")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao excluir hábito.")
+        } finally {
+            setDeletingHabitId(null)
         }
-    };
+    }
+
 
     const stats = {
         totalHabits: habits.length,
@@ -73,6 +77,7 @@ export const HabitsPage: React.FC = () => {
     }
 
     const handleSaveHabit = async (habitData: Habit) => {
+        setIsSavingHabit(true)
         try {
             if (editingHabit) {
                 const updated = await HabitService.update(habitData.id, habitData)
@@ -83,10 +88,10 @@ export const HabitsPage: React.FC = () => {
                 setHabits([created, ...habits])
                 toast.success("Hábito criado com sucesso.")
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao salvar hábito.")
         } finally {
+            setIsSavingHabit(false)
             setEditingHabit(null)
         }
     }
@@ -183,11 +188,19 @@ export const HabitsPage: React.FC = () => {
 
                                         <button
                                             onClick={() => handleDeleteHabit(habit.id)}
-                                            className="text-red-500 hover:text-red-700 text-sm ml-2"
+                                            className={`text-sm ml-2 flex items-center space-x-1 ${
+                                                deletingHabitId === habit.id ? "text-gray-400 cursor-not-allowed" : "text-red-500 hover:text-red-700"
+                                            }`}
                                             title="Excluir hábito"
+                                            disabled={deletingHabitId === habit.id}
                                         >
-                                            🗑️
+                                            {deletingHabitId === habit.id ? (
+                                                <span className="text-xs animate-pulse">Excluindo...</span>
+                                            ) : (
+                                                <>🗑️</>
+                                            )}
                                         </button>
+
                                     </div>
                                     <p className="text-secondary text-sm mb-2">{habit.description}</p>
 
@@ -230,7 +243,7 @@ export const HabitsPage: React.FC = () => {
                         <div className="text-6xl mb-4">🎯</div>
                         <h3 className="text-lg font-medium text-secondary mb-2">Nenhum hábito criado</h3>
                         <p className="text-muted mb-4">Comece criando hábitos positivos para sua rotina</p>
-                        <Button>Criar primeiro hábito</Button>
+                        <Button onClick={handleAddHabit}>Criar primeiro hábito</Button>
                     </div>
                 </Card>
             )}
@@ -244,6 +257,7 @@ export const HabitsPage: React.FC = () => {
                 }}
                 onSave={handleSaveHabit}
                 habit={editingHabit}
+                isLoading={isSavingHabit}
             />
         </div>
     )

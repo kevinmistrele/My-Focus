@@ -14,8 +14,7 @@ import { toast } from "sonner"
 export const NotesPage: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([])
     const [, setIsLoading] = useState(true)
-
-
+    const [deletingId, setDeletingId] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedColor, setSelectedColor] = useState("bg-yellow-200")
 
@@ -84,13 +83,17 @@ export const NotesPage: React.FC = () => {
 
     const deleteNote = async (id: string) => {
         try {
+            setDeletingId(id)
             await NoteService.delete(id)
             setNotes(notes.filter((note) => note.id !== id))
             toast.success("Anotação removida.")
         } catch (err) {
             toast.error("Erro ao deletar anotação.")
+        } finally {
+            setDeletingId(null)
         }
     }
+
 
 
 
@@ -170,7 +173,14 @@ export const NotesPage: React.FC = () => {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                         {pinnedNotes.map((note) => (
-                            <NoteCard key={note.id} note={note} onUpdate={updateNote} onDelete={deleteNote} onTogglePin={togglePin} />
+                            <NoteCard
+                                key={note.id}
+                                note={note}
+                                onUpdate={updateNote}
+                                onDelete={deleteNote}
+                                onTogglePin={togglePin}
+                                isDeleting={deletingId === note.id}
+                            />
                         ))}
                     </div>
                 </div>
@@ -211,9 +221,10 @@ interface NoteCardProps {
     onUpdate: (id: string, updates: Partial<Note>) => void
     onDelete: (id: string) => void
     onTogglePin: (id: string) => void
+    isDeleting?: boolean
 }
 
-const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onTogglePin }) => {
+const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onTogglePin, isDeleting }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [title, setTitle] = useState(note.title)
     const [content, setContent] = useState(note.content)
@@ -283,6 +294,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onToggleP
                                 e.stopPropagation()
                                 onDelete(note.id)
                             }}
+                            disabled={isDeleting}
                             className="text-gray-400 hover:text-red-600 transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

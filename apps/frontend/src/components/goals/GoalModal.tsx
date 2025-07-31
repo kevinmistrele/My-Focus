@@ -24,9 +24,10 @@ interface GoalModalProps {
     onClose: () => void
     onSave: (goal: Goal) => void
     goal?: Goal | null
+    isLoading?: boolean // <= ADICIONE ISSO
 }
 
-export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal }) => {
+export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal, isLoading }) => {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -165,7 +166,9 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
                     <Button type="button" variant="ghost" onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button type="submit">{goal ? "Salvar Alterações" : "Criar Meta"}</Button>
+                    <Button type="submit" loading={isLoading}>
+                        {goal ? "Salvar Alterações" : "Criar Meta"}
+                    </Button>
                 </div>
             </form>
         </Modal>

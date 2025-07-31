@@ -19,9 +19,11 @@ export interface ForgotPasswordPageProps {
 
 export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackToLogin, features }) => {
     const [email, setEmail] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
     const [isEmailSent, setIsEmailSent] = useState(false)
     const [cooldown, setCooldown] = useState(0)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isResending, setIsResending] = useState(false)
+
 
 
     useEffect(() => {
@@ -38,7 +40,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
         if (!email.trim()) return
 
         try {
-            setIsLoading(true)
+            setIsSubmitting(true)
             await AuthService.forgotPassword(email)
             setIsEmailSent(true)
             setCooldown(30)
@@ -46,24 +48,26 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
         } catch (err) {
             toast.error("Erro ao enviar email. Verifique o email digitado.")
         } finally {
-            setIsLoading(false)
+            setIsSubmitting(false)
         }
     }
+
 
     const handleResendEmail = async () => {
         if (cooldown > 0) return
 
         try {
-            setIsLoading(true)
+            setIsResending(true)
             await AuthService.forgotPassword(email)
             toast.success("Email reenviado com sucesso!")
             setCooldown(30)
         } catch {
             toast.error("Erro ao reenviar email.")
         } finally {
-            setIsLoading(false)
+            setIsResending(false)
         }
     }
+
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
             {/* Background Effects */}
@@ -170,9 +174,10 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
                                             }
                                         />
 
-                                        <Button type="submit" className="w-full" size="lg" loading={isLoading}>
+                                        <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
                                             Enviar link de recuperação
                                         </Button>
+
                                     </form>
                                 </>
                             ) : (
@@ -222,11 +227,12 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
                                                 onClick={handleResendEmail}
                                                 variant="outline"
                                                 className="w-full bg-transparent"
-                                                loading={isLoading}
+                                                loading={isResending}
                                                 disabled={cooldown > 0}
                                             >
                                                 {cooldown > 0 ? `Reenviar email (${cooldown}s)` : "Reenviar email"}
                                             </Button>
+
                                         </div>
                                     </div>
                                 </>

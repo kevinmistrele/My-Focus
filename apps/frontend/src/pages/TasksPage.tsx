@@ -15,6 +15,7 @@ export const TasksPage: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([])
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const [isLoading, setIsLoading] = useState(false)
     const TASKS_PER_PAGE = 10;
 
 
@@ -42,6 +43,7 @@ export const TasksPage: React.FC = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
 
     const handleSaveTask = async (taskData: Task) => {
+        setIsLoading(true)
         try {
             const payload: TaskPayload = {
                 title: taskData.title,
@@ -61,11 +63,13 @@ export const TasksPage: React.FC = () => {
             setTasks(updated.data)
             setTotalPages(updated.totalPages || 1)
             toast.success(editingTask ? "Tarefa atualizada!" : "Tarefa criada!")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao salvar tarefa.")
+        } finally {
+            setIsLoading(false)
         }
     }
+
     const handleEditTask = (task: Task) => {
         setEditingTask(task)
         setIsModalOpen(true)
@@ -127,7 +131,7 @@ export const TasksPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-primary">Tarefas</h1>
-                <Button onClick={handleAddTask} className="shadow-purple">
+                <Button onClick={handleAddTask}  loading={isLoading} className="shadow-purple">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
@@ -243,6 +247,7 @@ export const TasksPage: React.FC = () => {
                         <Button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
+                            loading={isLoading}
                         >
                             Próxima
                         </Button>
@@ -259,6 +264,7 @@ export const TasksPage: React.FC = () => {
                     setEditingTask(null)
                 }}
                 onSave={handleSaveTask}
+                isLoading={isLoading}
                 task={editingTask}
             />
         </div>

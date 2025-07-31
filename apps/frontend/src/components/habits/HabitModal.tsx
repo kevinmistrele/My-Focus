@@ -26,9 +26,10 @@ interface HabitModalProps {
     onClose: () => void
     onSave: (habit: Habit) => void
     habit?: Habit | null
+    isLoading?: boolean
 }
 
-export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave, habit }) => {
+export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave, habit, isLoading  }) => {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -94,17 +95,6 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
         "Geral",
     ]
 
-    const colors = [
-        "bg-purple-500",
-        "bg-blue-500",
-        "bg-green-500",
-        "bg-yellow-500",
-        "bg-red-500",
-        "bg-pink-500",
-        "bg-indigo-500",
-        "bg-orange-500",
-    ]
-
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={habit ? "Editar Hábito" : "Novo Hábito"} size="lg">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -164,27 +154,14 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-secondary mb-2">Cor</label>
-                    <div className="flex space-x-2 flex-wrap gap-2">
-                        {colors.map((color) => (
-                            <button
-                                key={color}
-                                type="button"
-                                onClick={() => setFormData((prev) => ({ ...prev, color }))}
-                                className={`w-8 h-8 rounded-full ${color} border-2 ${
-                                    formData.color === color ? "border-white shadow-lg" : "border-transparent"
-                                } hover:scale-110 transition-transform`}
-                            />
-                        ))}
-                    </div>
-                </div>
-
                 <div className="flex justify-end space-x-4 pt-4">
                     <Button type="button" variant="ghost" onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button type="submit">{habit ? "Salvar Alterações" : "Criar Hábito"}</Button>
+                    <Button type="submit" loading={isLoading}>
+                        {habit ? "Salvar Alterações" : "Criar Hábito"}
+                    </Button>
+
                 </div>
             </form>
         </Modal>

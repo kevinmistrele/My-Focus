@@ -32,6 +32,8 @@ export const MoodPage: React.FC = () => {
     const [showMoodModal, setShowMoodModal] = useState(false)
     const [selectedMood, setSelectedMood] = useState<"happy" | "neutral" | "sad">("neutral")
     const [note, setNote] = useState("")
+    const [saveLoading, setSaveLoading] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
     const [stats, setStats] = useState<MoodStats>({
         happy: 0,
         neutral: 0,
@@ -59,6 +61,7 @@ export const MoodPage: React.FC = () => {
     }
 
     const saveMoodEntry = async () => {
+        setSaveLoading(true)
         try {
             const payload: MoodPayload = {
                 mood: selectedMood,
@@ -78,19 +81,26 @@ export const MoodPage: React.FC = () => {
             await loadMoodEntries()
         } catch (err) {
             toast.error("Erro ao salvar humor.")
+        } finally {
+            setSaveLoading(false)
         }
     }
 
 
+
     const deleteMood = async (id: string) => {
+        setDeletingId(id)
         try {
             await MoodService.delete(id)
             await loadMoodEntries()
             toast.success("Registro removido com sucesso.")
         } catch (err) {
             toast.error("Erro ao remover humor.")
+        } finally {
+            setDeletingId(null)
         }
     }
+
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -195,9 +205,12 @@ export const MoodPage: React.FC = () => {
                                         variant="ghost"
                                         className="text-red-500"
                                         onClick={() => deleteMood(entry.id)}
+                                        loading={deletingId === entry.id}
+                                        disabled={deletingId === entry.id}
                                     >
                                         Remover
                                     </Button>
+
                                 </div>
                             ))
                         )}
@@ -249,7 +262,10 @@ export const MoodPage: React.FC = () => {
                         <Button variant="ghost" onClick={() => setShowMoodModal(false)}>
                             Cancelar
                         </Button>
-                        <Button onClick={saveMoodEntry}>Salvar</Button>
+                        <Button onClick={saveMoodEntry} loading={saveLoading} disabled={saveLoading}>
+                            Salvar
+                        </Button>
+
                     </div>
                 </div>
             </Modal>

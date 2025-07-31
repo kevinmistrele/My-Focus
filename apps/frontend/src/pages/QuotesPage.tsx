@@ -23,6 +23,10 @@ export const QuotesPage: React.FC = () => {
     const [newQuote, setNewQuote] = useState({ text: "", author: "" })
     const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
     const [editForm, setEditForm] = useState({ text: "", author: "" })
+    const [isAdding, setIsAdding] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [loadingDeleteId, setLoadingDeleteId] = useState<string | null>(null)
+
 
     const systemQuotes: Quote[] = [
         {
@@ -47,6 +51,7 @@ export const QuotesPage: React.FC = () => {
     }, [])
 
     const loadQuotes = async () => {
+        setIsEditing(true)
         try {
             const res = await QuotesService.getAll()
             if (!res) return
@@ -68,9 +73,11 @@ export const QuotesPage: React.FC = () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao carregar frases.")
+        } finally {
+            setIsEditing(false)
         }
     }
-    
+
 
     const addQuote = async () => {
         if (!newQuote.text.trim()) return
@@ -80,6 +87,7 @@ export const QuotesPage: React.FC = () => {
         }
 
         try {
+            setIsAdding(true)
             await QuotesService.create({
                 text: newQuote.text.trim(),
                 author: newQuote.author.trim() || undefined,
@@ -87,23 +95,28 @@ export const QuotesPage: React.FC = () => {
             setNewQuote({ text: "", author: "" })
             setShowAddModal(false)
             await loadQuotes()
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
+        } catch {
             toast.error("Erro ao adicionar frase.")
+        } finally {
+            setIsAdding(false)
         }
     }
 
 
+
     const removeQuote = async (id: string) => {
+        setLoadingDeleteId(id)
         try {
             await QuotesService.delete(id)
             await loadQuotes()
             toast.success("Frase removida com sucesso.")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
+        } catch {
             toast.error("Erro ao remover frase.")
+        } finally {
+            setLoadingDeleteId(null)
         }
     }
+
 
 
     const getNewRandomQuote = () => {
@@ -182,9 +195,12 @@ export const QuotesPage: React.FC = () => {
                                         size="sm"
                                         onClick={() => removeQuote(quote.id)}
                                         className="mt-2 text-red-400 hover:text-red-300"
+                                        disabled={loadingDeleteId === quote.id}
+                                        loading={loadingDeleteId === quote.id}
                                     >
                                         Remover
                                     </Button>
+
                                 </div>
                             ))
                         )}
@@ -225,9 +241,10 @@ export const QuotesPage: React.FC = () => {
                         <Button variant="ghost" onClick={() => setShowAddModal(false)}>
                             Cancelar
                         </Button>
-                        <Button onClick={addQuote} disabled={!newQuote.text.trim()}>
+                        <Button onClick={addQuote} disabled={!newQuote.text.trim() || isAdding} loading={isAdding}>
                             Adicionar
                         </Button>
+
                     </div>
                 </div>
             </Modal>
@@ -270,6 +287,7 @@ export const QuotesPage: React.FC = () => {
                                 }
                             }}
                             disabled={!editForm.text.trim()}
+                            loading={isEditing}
                         >
                             Salvar
                         </Button>

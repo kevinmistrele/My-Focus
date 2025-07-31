@@ -20,6 +20,10 @@ export const ProfilePage: React.FC = () => {
     const [showTermsModal, setShowTermsModal] = useState(false)
     const [showPrivacyModal, setShowPrivacyModal] = useState(false)
     const [showLGPDModal, setShowLGPDModal] = useState(false)
+    const [isLoadingSave, setIsLoadingSave] = useState(false)
+    const [isLoadingDelete, setIsLoadingDelete] = useState(false)
+    const [isLoadingPassword, setIsLoadingPassword] = useState(false)
+
 
     useEffect(() => {
         fetchUser()
@@ -49,6 +53,7 @@ export const ProfilePage: React.FC = () => {
 
 
     const handleSave = async () => {
+        setIsLoadingSave(true)
         try {
             await UserService.updateCurrent(formData)
             setUser((prev: any) => ({
@@ -58,24 +63,29 @@ export const ProfilePage: React.FC = () => {
             }))
             toast.success("Perfil atualizado com sucesso!")
             setIsEditing(false)
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
+        } catch {
             toast.error("Erro ao atualizar perfil.")
+        } finally {
+            setIsLoadingSave(false)
         }
     }
 
 
+
     const handleDeleteAccount = async () => {
+        setIsLoadingDelete(true)
         try {
             await UserService.deleteCurrent()
             toast.success("Conta excluída com sucesso.")
             setShowDeleteModal(false)
             window.location.href = "/login"
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
+        } catch {
             toast.error("Erro ao excluir conta.")
+        } finally {
+            setIsLoadingDelete(false)
         }
     }
+
 
 
     const exportUserData = () => {
@@ -152,7 +162,7 @@ export const ProfilePage: React.FC = () => {
                                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                                 />
                                 <div className="flex space-x-3">
-                                    <Button onClick={handleSave}>Salvar</Button>
+                                    <Button onClick={handleSave} loading={isLoadingSave}>Salvar</Button>
                                     <Button variant="ghost" onClick={() => setIsEditing(false)}>
                                         Cancelar
                                     </Button>
@@ -295,9 +305,10 @@ export const ProfilePage: React.FC = () => {
                     </ul>
 
                     <div className="flex space-x-3 pt-4">
-                        <Button variant="danger" onClick={handleDeleteAccount} className="flex-1">
+                        <Button variant="danger" onClick={handleDeleteAccount} loading={isLoadingDelete} className="flex-1">
                             Sim, excluir minha conta
                         </Button>
+
                         <Button variant="ghost" onClick={() => setShowDeleteModal(false)} className="flex-1">
                             Cancelar
                         </Button>
@@ -325,19 +336,24 @@ export const ProfilePage: React.FC = () => {
                             Cancelar
                         </Button>
                         <Button
+                            loading={isLoadingPassword}
                             onClick={async () => {
+                                setIsLoadingPassword(true)
                                 try {
                                     await UserService.changePassword(passwordData)
                                     toast.success("Senha alterada com sucesso!")
                                     setShowPasswordModal(false)
                                     setPasswordData({ currentPassword: "", newPassword: "" })
-                                } catch (e) {
+                                } catch {
                                     toast.error("Erro ao alterar senha.")
+                                } finally {
+                                    setIsLoadingPassword(false)
                                 }
                             }}
                         >
                             Salvar
                         </Button>
+
                     </div>
                 </div>
             </Modal>

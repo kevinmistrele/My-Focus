@@ -200,7 +200,10 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ token, onS
                                         />
                                     </svg>
                                 </div>
-                                <h2 className="text-2xl font-bold text-primary mb-2">Redefinir senha</h2>
+                                <Button type="submit" className="w-full" size="lg" loading={isLoading}>
+                                    {isLoading ? "Redefinindo..." : "Redefinir senha"}
+                                </Button>
+
                                 <p className="text-secondary text-sm">Digite sua nova senha abaixo</p>
                             </div>
 

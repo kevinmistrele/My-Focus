@@ -14,9 +14,10 @@ interface TaskModalProps {
     onClose: () => void
     onSave: (task: Task) => void
     task?: Task | null
+    isLoading?: boolean
 }
 
-export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) => {
+export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, isLoading }) => {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -184,7 +185,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, t
                     <Button type="button" variant="ghost" onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button type="submit">{task ? "Salvar Alterações" : "Criar Tarefa"}</Button>
+                    <Button loading={isLoading} type="submit" disabled={isLoading}>
+                        {task ? "Salvar Alterações" : "Criar Tarefa"}
+                    </Button>
                 </div>
             </form>
         </Modal>
