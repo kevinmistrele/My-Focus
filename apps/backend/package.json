@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --project tsconfig.json src/server.ts",
-    "migrate": "src/prisma migrate dev --name init",
+    "migrate": "prisma migrate dev --name init --schema=src/prisma/schema.prisma",
     "studio": "src/prisma studio --schema=prisma/schema.prisma",
     "generate": "prisma generate --schema=src/prisma/schema.prisma",
     "build": "tsc",
