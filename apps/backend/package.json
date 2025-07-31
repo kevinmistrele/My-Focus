@@ -9,7 +9,7 @@
     "studio": "src/prisma studio --schema=prisma/schema.prisma",
     "generate": "prisma generate --schema=src/prisma/schema.prisma",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "npx prisma migrate deploy --schema=src/prisma/schema.prisma && node dist/server.js",
     "prod": "npm run build && npm run start"
   },
   "dependencies": {
