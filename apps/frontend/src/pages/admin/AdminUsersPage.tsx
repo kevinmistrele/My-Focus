@@ -9,6 +9,7 @@ import { Modal } from "../../components/ui/Modal"
 import { ConfirmModal } from "../../components/ui/ConfirmModal"
 import type { User } from "../../lib/types"
 import {UserService} from "../../services";
+import {toast} from "sonner";
 
 export const AdminUsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([])
@@ -57,7 +58,7 @@ export const AdminUsersPage: React.FC = () => {
             const usersData = res?.data
 
             if (!Array.isArray(usersData)) {
-                throw new Error("Formato de resposta inesperado da API")
+                toast.error("Formato de resposta inesperado da API")
             }
 
             const parsedUsers: User[] = usersData.map((user: any) => ({
@@ -147,9 +148,8 @@ export const AdminUsersPage: React.FC = () => {
             const res = await UserService.update(editingUser.id, editingUser)
 
             if (!res || (res.status !== 200 && res.status !== 204)) {
-                throw new Error("Erro ao editar usuário.")
+                toast.error("Erro ao editar usuário.")
             }
-
 
             const updated: User = {
                 ...res.data,
@@ -160,8 +160,10 @@ export const AdminUsersPage: React.FC = () => {
             setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
             setEditingUser(null)
             setIsEditModalOpen(false)
+
+            toast.success("Usuário atualizado com sucesso!")
         } catch (err) {
-            console.error("Erro ao editar usuário:", err)
+            toast.error("Erro ao editar usuário.")
         }
     }
 

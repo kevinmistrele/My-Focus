@@ -64,13 +64,34 @@ export const createGoal = async (req: Request, res: Response) => {
 export const updateGoal = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { id } = req.params;
+
     const goal = await prisma.goal.findUnique({ where: { id } });
 
     if (!goal || goal.userId !== user.id) {
         return res.status(403).json({ error: "Acesso negado ou meta não encontrada" });
     }
 
-    const updated = await prisma.goal.update({ where: { id }, data: req.body });
+    const {
+        title,
+        description,
+        type,
+        category,
+        targetDate,
+        progress,
+        completed
+    } = req.body;
+
+    const data: any = {
+        ...(title && { title }),
+        ...(description && { description }),
+        ...(type && { type }),
+        ...(category && { category }),
+        ...(typeof progress !== "undefined" && { progress }),
+        ...(typeof completed !== "undefined" && { completed }),
+        ...(targetDate && { targetDate: new Date(targetDate) }),
+    };
+
+    const updated = await prisma.goal.update({ where: { id }, data });
 
     await logActivity({
         userId: user.id,
