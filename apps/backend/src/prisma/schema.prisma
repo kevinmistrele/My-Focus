@@ -44,15 +44,15 @@ model User {
   loginStreak     Int               @default(0)
   lastStreakDate  DateTime?
 
-  tasks           Task[]            @relation("UserTasks", onDelete: Cascade)
-  sessions        PomodoroSession[] @relation("UserSessions", onDelete: Cascade)
-  goals           Goal[]            @relation("UserGoals", onDelete: Cascade)
-  habits          Habit[]           @relation("UserHabits", onDelete: Cascade)
-  activityLogs    ActivityLog[]     @relation("UserLogs", onDelete: Cascade)
-  quotes          Quote[]           @relation(onDelete: Cascade)
-  moods           MoodLog[]         @relation(onDelete: Cascade)
-  habitCheckins   HabitCheckin[]    @relation(onDelete: Cascade)
-  notes           Note[]            @relation("UserNotes", onDelete: Cascade)
+  tasks           Task[]            @relation("UserTasks")
+  sessions        PomodoroSession[] @relation("UserSessions")
+  goals           Goal[]            @relation("UserGoals")
+  habits          Habit[]           @relation("UserHabits")
+  activityLogs    ActivityLog[]     @relation("UserLogs")
+  quotes          Quote[]
+  moods           MoodLog[]
+  habitCheckins   HabitCheckin[]
+  notes           Note[]            @relation("UserNotes")
 }
 
 model Task {
@@ -112,7 +112,7 @@ model Habit {
 
   user           User           @relation("UserHabits", fields: [userId], references: [id], onDelete: Cascade)
   userId         String
-  checkins       HabitCheckin[] @relation(onDelete: Cascade)
+  checkins       HabitCheckin[]
 }
 
 model HabitCheckin {
