@@ -186,7 +186,7 @@ export const HabitsPage: React.FC = () => {
                       {habit.category}
                     </span>
 
-                                        <button
+                                        <Button
                                             onClick={() => handleDeleteHabit(habit.id)}
                                             className={`text-sm ml-2 flex items-center space-x-1 ${
                                                 deletingHabitId === habit.id ? "text-gray-400 cursor-not-allowed" : "text-red-500 hover:text-red-700"
@@ -199,7 +199,7 @@ export const HabitsPage: React.FC = () => {
                                             ) : (
                                                 <>🗑️</>
                                             )}
-                                        </button>
+                                        </Button>
 
                                     </div>
                                     <p className="text-secondary text-sm mb-2">{habit.description}</p>

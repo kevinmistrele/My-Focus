@@ -209,14 +209,20 @@ export const checkinHabit = async (req: Request, res: Response) => {
 
 
 export const deleteHabit = async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    try {
+        const user = (req as any).user;
 
-    const habit = await prisma.habit.findUnique({ where: { id: req.params.id } });
-    if (!habit || habit.userId !== user.id) {
-        return res.status(404).json({ error: "Hábito não encontrado ou acesso negado" });
+        const habit = await prisma.habit.findUnique({ where: { id: req.params.id } });
+        if (!habit || habit.userId !== user.id) {
+            return res.status(404).json({ error: "Hábito não encontrado ou acesso negado" });
+        }
+
+        await prisma.habit.delete({ where: { id: req.params.id } });
+
+        res.status(204).send();
+    } catch (error) {
+        console.error("Erro ao deletar hábito:", error);
+        res.status(500).json({ error: "Erro interno ao deletar hábito." });
     }
-
-    await prisma.habit.delete({ where: { id: req.params.id } });
-
-    res.status(204).send();
 };
+
