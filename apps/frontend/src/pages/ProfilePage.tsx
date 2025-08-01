@@ -522,7 +522,7 @@ export const ProfilePage: React.FC = () => {
                         <h3 className="text-primary font-semibold">7. Contato</h3>
                         <p>
                             Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados, entre em contato através do
-                            email: privacidade@myfocus.com
+                            email: myfocus.suporte@gmail.com
                         </p>
                     </div>
                 </div>
