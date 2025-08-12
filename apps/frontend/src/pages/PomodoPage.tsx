@@ -1,125 +1,163 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
 import { formatTime } from "../lib/utils"
-import {PomodoroService} from "../services";
-import {toast} from "sonner";
+import { PomodoroService } from "../services"
+import { toast } from "sonner"
+
+const STORAGE_KEY = "myfocus:pomodoro"
 
 export const PomodoroPage: React.FC = () => {
     const [customMinutes, setCustomMinutes] = useState(25)
-    const [timeLeft, setTimeLeft] = useState(25 * 60) // 25 minutes in seconds
+    const [timeLeft, setTimeLeft] = useState(25 * 60) // base
     const [isActive, setIsActive] = useState(false)
-    const [sessions, setSessions] = useState(0)
     const [isEditing, setIsEditing] = useState(false)
+    const [startTime, setStartTime] = useState<number | null>(null)
+    const [hydrated, setHydrated] = useState(false)
+
+    const [sessions, setSessions] = useState(0)
     const [sessionHistory, setSessionHistory] = useState<any[]>([])
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [totalMinutes, setTotalMinutes] = useState(0)
 
     useEffect(() => {
-        const fetchSessions = async () => {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (raw) {
             try {
-                const res = await PomodoroService.getAll({ page: currentPage, limit: 5 })
-                const { data, total, totalDuration, totalPages } = res
+                const saved = JSON.parse(raw) as {
+                    customMinutes?: number
+                    startTime?: number | null
+                    isActive?: boolean
+                }
 
-                const mapped = data.map((s: any) => {
-                    const start = new Date(s.startTime)
-                    const end = new Date(start.getTime() + s.duration * 60 * 1000)
-                    return {
-                        id: s.id,
-                        date: start,
-                        duration: s.duration,
-                        completed: true,
-                        startTime: start,
-                        endTime: end,
+                if (typeof saved.customMinutes === "number") {
+                    setCustomMinutes(saved.customMinutes)
+                    setTimeLeft(saved.customMinutes * 60)
+                }
+
+                if (saved.startTime && saved.isActive) {
+                    const elapsed = Math.floor((Date.now() - saved.startTime) / 1000)
+                    const total = (saved.customMinutes ?? 25) * 60
+                    const remaining = total - elapsed
+                    if (remaining > 0) {
+                        setStartTime(saved.startTime)
+                        setTimeLeft(remaining)
+                        setIsActive(true)
+                    } else {
+                        setStartTime(null)
+                        setIsActive(false)
+                        setTimeLeft((saved.customMinutes ?? 25) * 60)
                     }
-                })
-
-                setSessionHistory(mapped)
-                setSessions(total)
-                setTotalMinutes(totalDuration)
-                setTotalPages(totalPages)
-            } catch (err) {
-                toast.error("Erro ao carregar sessões do Pomodoro.")
-            }
+                }
+            } catch {}
         }
-
-        fetchSessions()
-    }, [currentPage])
-
-
+        setHydrated(true)
+    }, [])
 
     useEffect(() => {
-        let interval: NodeJS.Timeout | null = null
+        if (!hydrated) return
+        const prev = (() => {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") } catch { return {} }
+        })()
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({ ...prev, customMinutes, startTime, isActive })
+        )
+    }, [customMinutes, startTime, isActive, hydrated])
 
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft((timeLeft) => timeLeft - 1)
-            }, 1000)
-        } else if (timeLeft === 0 && isActive) {
-            const handleSessionComplete = async () => {
+    useEffect(() => {
+        if (!isActive || !startTime) return
+
+        const tick = () => {
+            const now = Date.now()
+            const elapsed = Math.floor((now - startTime) / 1000)
+            const remaining = customMinutes * 60 - elapsed
+
+            if (remaining <= 0) {
                 setIsActive(false)
-                setSessions((prev) => prev + 1)
-                setTimeLeft(customMinutes * 60)
+                setStartTime(null)
+                setTimeLeft(0)
 
-                const now = new Date()
-                const start = new Date(now.getTime() - customMinutes * 60 * 1000)
-
-                const payload = {
-                    duration: customMinutes,
-                    type: "work" as const,
-                    startTime: start,
-                }
-
-                try {
-                    const saved = await PomodoroService.create(payload)
-
-                    setSessionHistory((prev) => [
-                        {
-                            id: saved.id,
-                            date: new Date(saved.startTime),
-                            duration: saved.duration,
-                            completed: true,
-                            startTime: new Date(saved.startTime),
-                            endTime: new Date(),
-                        },
-                        ...prev,
-                    ])
-
-                    if (Notification.permission === "granted") {
-                        new Notification("MyFocus", {
-                            body: "Sessão de foco concluída! 🎉",
-                            icon: "/favicon.ico",
-                        })
-                    }
-                } catch (err) {
-                    toast.error("Erro ao salvar sessão do Pomodoro.")
-                }
+                const prev = (() => {
+                    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") } catch { return {} }
+                })()
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({ ...prev, isActive: false, startTime: null })
+                )
+            } else {
+                setTimeLeft(remaining)
             }
-
-            handleSessionComplete()
         }
 
-        return () => {
-            if (interval) clearInterval(interval)
+        tick()
+        const id = setInterval(tick, 1000)
+        return () => clearInterval(id)
+    }, [isActive, startTime, customMinutes])
+
+    const fetchSessions = useCallback(async () => {
+        try {
+            const res = await PomodoroService.getAll({ page: currentPage, limit: 5 })
+            const { data, total, totalDuration, totalPages } = res
+
+            const mapped = data.map((s: any) => {
+                const start = new Date(s.startTime)
+                const end = new Date(start.getTime() + s.duration * 60 * 1000)
+                return {
+                    id: s.id,
+                    date: start,
+                    duration: s.duration,
+                    completed: true,
+                    startTime: start,
+                    endTime: end,
+                }
+            })
+
+            setSessionHistory(mapped)
+            setSessions(total)
+            setTotalMinutes(totalDuration)
+            setTotalPages(totalPages)
+        } catch {
+            toast.error("Erro ao carregar sessões do Pomodoro.")
         }
-    }, [isActive, timeLeft, customMinutes])
+    }, [currentPage])
+
+    useEffect(() => {
+        fetchSessions()
+    }, [fetchSessions])
+
+    useEffect(() => {
+        const onCompleted = () => {
+            setIsActive(false)
+            setStartTime(null)
+            setTimeLeft(customMinutes * 60)
+            fetchSessions()
+        }
+        window.addEventListener("pomodoro:completed", onCompleted as EventListener)
+        return () => window.removeEventListener("pomodoro:completed", onCompleted as EventListener)
+    }, [customMinutes, fetchSessions])
 
     const handleStart = () => {
-        if (Notification.permission !== "granted") {
+        if (typeof Notification !== "undefined" && Notification.permission !== "granted") {
             Notification.requestPermission()
         }
+        setStartTime(Date.now() - (customMinutes * 60 - timeLeft) * 1000)
         setIsActive(true)
     }
 
-    const handlePause = () => setIsActive(false)
+    const handlePause = () => {
+        setIsActive(false)
+        setStartTime(null)
+    }
 
     const handleReset = () => {
         setIsActive(false)
+        setStartTime(null)
         setTimeLeft(customMinutes * 60)
     }
 
@@ -128,12 +166,16 @@ export const PomodoroPage: React.FC = () => {
             setCustomMinutes(minutes)
             if (!isActive) {
                 setTimeLeft(minutes * 60)
+                setStartTime(null)
             }
         }
     }
 
     const progress = ((customMinutes * 60 - timeLeft) / (customMinutes * 60)) * 100
 
+    if (!hydrated) {
+        return <div className="text-center text-secondary mt-10">Recuperando pomodoro...</div>
+    }
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -146,22 +188,9 @@ export const PomodoroPage: React.FC = () => {
             <Card className="text-center" padding="lg">
                 <div className="relative mb-8">
                     <svg className="w-80 h-80 mx-auto transform -rotate-90">
+                        <circle cx="160" cy="160" r="140" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-surface-light" />
                         <circle
-                            cx="160"
-                            cy="160"
-                            r="140"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            fill="transparent"
-                            className="text-surface-light"
-                        />
-                        <circle
-                            cx="160"
-                            cy="160"
-                            r="140"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            fill="transparent"
+                            cx="160" cy="160" r="140" stroke="currentColor" strokeWidth="12" fill="transparent"
                             strokeDasharray={`${2 * Math.PI * 140}`}
                             strokeDashoffset={`${2 * Math.PI * 140 * (1 - progress / 100)}`}
                             className="text-primary transition-all duration-1000 ease-linear"
@@ -178,39 +207,9 @@ export const PomodoroPage: React.FC = () => {
 
                 <div className="flex justify-center space-x-4 mb-6">
                     <Button onClick={isActive ? handlePause : handleStart} size="lg" className="px-8">
-                        {isActive ? (
-                            <>
-                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                                Pausar
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                                Iniciar
-                            </>
-                        )}
+                        {isActive ? "Pausar" : "Iniciar"}
                     </Button>
                     <Button onClick={handleReset} variant="outline" size="lg">
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                        </svg>
                         Resetar
                     </Button>
                 </div>
@@ -229,11 +228,7 @@ export const PomodoroPage: React.FC = () => {
                                 max="120"
                             />
                             <span className="text-secondary">min</span>
-                            <Button size="sm" onClick={() => setIsEditing(false)}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </Button>
+                            <Button size="sm" onClick={() => setIsEditing(false)}>OK</Button>
                         </div>
                     ) : (
                         <button
@@ -243,12 +238,7 @@ export const PomodoroPage: React.FC = () => {
                         >
                             <span className="font-medium">{customMinutes} min</span>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                         </button>
                     )}
@@ -285,7 +275,6 @@ export const PomodoroPage: React.FC = () => {
                     <div className="text-center">
                         <div className="text-3xl font-bold text-green-500">
                             {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}
-
                         </div>
                         <div className="text-sm text-secondary">Tempo Total</div>
                     </div>
@@ -310,15 +299,9 @@ export const PomodoroPage: React.FC = () => {
                                     <div>
                                         <div className="text-sm font-medium text-primary">{session.duration} minutos</div>
                                         <div className="text-xs text-muted">
-                                            {session.startTime.toLocaleTimeString("pt-BR", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}{" "}
+                                            {session.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}{" "}
                                             -{" "}
-                                            {session.endTime.toLocaleTimeString("pt-BR", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
+                                            {session.endTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                                         </div>
                                     </div>
                                 </div>
@@ -332,20 +315,18 @@ export const PomodoroPage: React.FC = () => {
                     </div>
                 )}
             </Card>
+
             {totalPages > 1 && (
                 <div className="flex justify-between items-center mt-4 px-2">
                     <Button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
                         Anterior
                     </Button>
-                    <span className="text-sm text-secondary">
-            Página {currentPage} de {totalPages}
-        </span>
+                    <span className="text-sm text-secondary">Página {currentPage} de {totalPages}</span>
                     <Button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
                         Próxima
                     </Button>
                 </div>
             )}
-
         </div>
     )
 }
