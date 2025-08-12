@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage"
 import type { Route } from "./lib/router"
 import "./styles/global.css"
 import { useAuth } from "./contexts/AuthContext"
+import {PomodoroWatcher} from "./components/PomodoroWatcher.tsx";
 
 export default function App() {
     const { user, loading, login } = useAuth()
@@ -25,6 +26,7 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-background flex">
+            <PomodoroWatcher />
             <Sidebar
                 isOpen={sidebarOpen}
                 currentPath={currentPath}
