@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --project tsconfig.json src/server.ts",
     "migrate": "prisma migrate dev --name init --schema=src/prisma/schema.prisma",
-    "studio": "src/prisma studio --schema=prisma/schema.prisma",
+    "studio": "prisma studio --schema=src/prisma/schema.prisma",
     "generate": "prisma generate --schema=src/prisma/schema.prisma",
     "build": "tsc",
     "start": "npx prisma migrate deploy --schema=src/prisma/schema.prisma && node dist/server.js",
