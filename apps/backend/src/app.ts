@@ -35,6 +35,11 @@ app.use("/activities", activityRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes)
 
+app.get("/healthz", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+
 app.use(notFound);
 app.use(errorHandler);
 
