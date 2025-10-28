@@ -71,6 +71,7 @@ export const AdminUsersPage: React.FC = () => {
             setUsers(parsedUsers)
             setTotalPages(res?.totalPages || 1)
             setCurrentPage(page)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setUsers([])
         } finally {
@@ -147,21 +148,26 @@ export const AdminUsersPage: React.FC = () => {
         try {
             const res = await UserService.update(editingUser.id, editingUser)
 
-            if (!res || (res.status !== 200 && res.status !== 204)) {
+            // Se o serviço retorna só os dados, não cheque res.status
+            if (!res) {
                 toast.error("Erro ao editar usuário.")
+                return
             }
 
             const updated: User = {
-                ...res.data,
-                createdAt: new Date(res.data.createdAt),
-                lastLogin: res.data.lastLogin ? new Date(res.data.lastLogin) : null,
+                ...res,
+                createdAt: new Date(res.createdAt),
+                lastLogin: res.lastLogin ? new Date(res.lastLogin) : null,
             }
 
             setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
             setEditingUser(null)
             setIsEditModalOpen(false)
+            setIsViewModalOpen(false)
+            setSelectedUser(null)
 
             toast.success("Usuário atualizado com sucesso!")
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao editar usuário.")
         }

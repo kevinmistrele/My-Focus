@@ -24,7 +24,7 @@ interface GoalModalProps {
     onClose: () => void
     onSave: (goal: Goal) => void
     goal?: Goal | null
-    isLoading?: boolean // <= ADICIONE ISSO
+    isLoading?: boolean
 }
 
 export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal, isLoading }) => {
@@ -56,7 +56,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
         }
     }, [goal, isOpen])
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.title.trim() || !formData.targetDate) {
@@ -76,9 +76,9 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
             createdAt: goal?.createdAt || new Date(),
         };
 
-        onSave(goalData);
-        toast.success(goal ? "Meta atualizada com sucesso!" : "Meta criada com sucesso!");
-        onClose();
+        await onSave(goalData);
+
+        setTimeout(() => onClose(), 150);
     };
 
     const categories = [

@@ -78,9 +78,20 @@ export const GoalsPage: React.FC = () => {
                     ...goalData,
                     targetDate: goalData.targetDate?.toISOString().split("T")[0] ?? "",
                 })
+
+                // 🔹 Verifica se updated e updated.data existem
+                const updatedGoal = updated?.data
+                    ? {
+                        ...updated.data,
+                        targetDate: updated.data.targetDate ? new Date(updated.data.targetDate) : null,
+                        createdAt: updated.data.createdAt ? new Date(updated.data.createdAt) : new Date(),
+                    }
+                    : goalData // fallback seguro
+
                 setGoals((prev) =>
-                    prev.map((g) => (g.id === goalData.id ? { ...updated.data, targetDate: new Date(updated.data.targetDate) } : g))
+                    prev.map((g) => (g.id === goalData.id ? updatedGoal : g))
                 )
+
                 toast.success("Meta atualizada com sucesso!")
             } else {
                 await GoalService.create({
