@@ -24,7 +24,7 @@ interface GoalModalProps {
     onClose: () => void
     onSave: (goal: Goal) => void
     goal?: Goal | null
-    isLoading?: boolean // <= ADICIONE ISSO
+    isLoading?: boolean
 }
 
 export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal, isLoading }) => {
