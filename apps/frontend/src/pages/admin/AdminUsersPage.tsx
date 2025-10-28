@@ -163,6 +163,8 @@ export const AdminUsersPage: React.FC = () => {
             setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
             setEditingUser(null)
             setIsEditModalOpen(false)
+            setIsViewModalOpen(false)
+            setSelectedUser(null)
 
             toast.success("Usuário atualizado com sucesso!")
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
