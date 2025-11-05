@@ -3,9 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 
-
-import { notFound } from "./middleware/notFound";
-import { errorHandler } from "./middleware/errorHandler";
+import {notFound} from "./middleware/notFound";
+import {errorHandler} from "./middleware/errorHandler";
 import userRoutes from "./routes/user.routes";
 import taskRoutes from "./routes/task.routes";
 import pomodoroRoutes from "./routes/pomodoro.routes";
@@ -19,7 +18,7 @@ import quoteRoutes from "./routes/quotes.routes";
 import notesRoutes from "./routes/notes.routes";
 
 dotenv.config();
-
+// Inicializa o aplicativo Express e configura o middleware necessário e as rotas
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -39,8 +38,9 @@ app.get("/healthz", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-
+// Middleware para tratamento de erros e rotas não encontradas
 app.use(notFound);
+// Error handling middleware
 app.use(errorHandler);
 
 export default app;
