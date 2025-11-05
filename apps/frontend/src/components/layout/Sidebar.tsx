@@ -13,9 +13,11 @@ interface SidebarProps {
     user: User
 }
 
-
+// Componente Sidebar para navegação lateral
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigate, user }) => {
+    // Hook de autenticação para logout
     const { logout } = useAuth()
+    // Itens do menu de navegação
     const menuItems = [
         { path: "/dashboard", label: "Dashboard", icon: "📊" },
         { path: "/tasks", label: "Tarefas", icon: "✅" },
@@ -27,12 +29,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
         { path: "/notes", label: "Notas", icon: "📝" },
     ]
 
+
+    // Itens do menu de administração
     const adminItems = [
         { path: "/admin/dashboard", label: "Admin Dashboard", icon: "⚙️" },
         { path: "/admin/users", label: "Usuários", icon: "👥" },
         { path: "/admin/logs", label: "Logs", icon: "📋" },
     ]
 
+    // Itens do menu de perfil
     const profileItems = [
         { path: "/profile", label: "Perfil", icon: "👤" },
     ]
