@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Modal } from "../ui/Modal"
-import { Button } from "../ui/Button"
-import { Input } from "../ui/Input"
+import {useEffect, useState} from "react"
+import {Modal} from "../ui/Modal"
+import {Button} from "../ui/Button"
+import {Input} from "../ui/Input"
 import {toast} from "sonner";
 
 interface Goal {
@@ -27,6 +27,7 @@ interface GoalModalProps {
     isLoading?: boolean
 }
 
+// Componente Modal para criar/editar metas do usuário
 export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal, isLoading }) => {
     const [formData, setFormData] = useState({
         title: "",
