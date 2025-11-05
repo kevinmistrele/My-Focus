@@ -1,5 +1,5 @@
-import React, { createContext, useEffect, useState, useContext } from "react"
-import { AuthService } from "../services"
+import React, {createContext, useContext, useEffect, useState} from "react"
+import {AuthService} from "../services"
 import type {User} from "../lib/types.ts";
 
 
@@ -10,8 +10,9 @@ interface AuthContextProps {
     logout: () => void
 }
 
+// Criando o contexto de autenticação
 const AuthContext = createContext<AuthContextProps | undefined>(undefined)
-
+// Criando o provedor de autenticação
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
