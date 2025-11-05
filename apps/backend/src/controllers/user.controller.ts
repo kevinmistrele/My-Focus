@@ -1,8 +1,11 @@
-import { Request, Response } from "express";
-import { logActivity } from "../services/logActivity";
-import { $Enums } from "@prisma/client";
+import {Request, Response} from "express";
+import {logActivity} from "../services/logActivity";
+import {$Enums} from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import {prisma} from "../prisma/client";
+
+
+// Pega Todos os usuários do sistema
 
 export const getAllUsers = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1
@@ -26,7 +29,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     })
 }
 
-
+// Pega um usuario especifico
 export const getCurrentUser = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
@@ -69,10 +72,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 };
 
 
-
-
-
-
+//Pega um usuario pelo Id
 export const getUserById = async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({
         where: { id: req.params.id },
@@ -112,6 +112,7 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 
+// Pega as proprias informações
 export const getMe = async (req: Request, res: Response) => {
     const userId = (req as any).userId
 
@@ -131,6 +132,8 @@ export const getMe = async (req: Request, res: Response) => {
     return res.json(user)
 }
 
+
+//Pega os status dos usuarios 
 export const getUserStats = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
@@ -164,7 +167,7 @@ export const getUserStats = async (req: Request, res: Response) => {
     }
 };
 
-
+// Atualiza as proprias informações
 export const updateMe = async (req: Request, res: Response) => {
     const userId = (req as any).userId
 
@@ -179,6 +182,8 @@ export const updateMe = async (req: Request, res: Response) => {
     res.json(user)
 }
 
+
+// Deleta as proprias informações
 export const deleteMe = async (req: Request, res: Response) => {
     const userId = (req as any).userId
 
@@ -188,7 +193,7 @@ export const deleteMe = async (req: Request, res: Response) => {
     res.status(204).send()
 }
 
-
+// Atualiza um usuário existente
 export const updateUser = async (req: Request, res: Response) => {
     const { name, email, avatar, type } = req.body
 
@@ -214,7 +219,7 @@ export const updateUser = async (req: Request, res: Response) => {
 }
 
 
-
+// Atualiza a senha do usuário
 export const changePassword = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { currentPassword, newPassword } = req.body;
@@ -238,7 +243,7 @@ export const changePassword = async (req: Request, res: Response) => {
     return res.json({ success: true });
 };
 
-
+// Deleta um usuário existente
 export const deleteUser = async (req: Request, res: Response) => {
     const userId = req.params.id;
 

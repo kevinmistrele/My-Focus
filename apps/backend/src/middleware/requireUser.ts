@@ -1,8 +1,11 @@
-import { Request, Response, NextFunction } from "express";
-import { prisma } from "../prisma/client";
+import {NextFunction, Request, Response} from "express";
+import {prisma} from "../prisma/client";
 import * as jwt from "jsonwebtoken";
 
-import { JWT_SECRET } from "../config";
+import {JWT_SECRET} from "../config";
+
+
+//Middleware para garantir que o usuário autenticado é do tipo "user" ou "admin"
 export const requireUser = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 

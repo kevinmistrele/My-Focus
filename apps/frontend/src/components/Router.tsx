@@ -1,18 +1,18 @@
 "use client"
 
 import type React from "react"
-import { DashboardPage } from "../pages/DashboardPage"
-import { TasksPage } from "../pages/TasksPage"
-import { GoalsPage } from "../pages/GoalsPage"
-import { HabitsPage } from "../pages/HabitsPage"
-import { NotesPage } from "../pages/NotesPage"
-import { ProfilePage } from "../pages/ProfilePage"
-import { PomodoroPage } from "../pages/PomodoPage"
-import { AdminDashboardPage } from "../pages/admin/AdminDashboardPage"
-import { AdminUsersPage } from "../pages/admin/AdminUsersPage"
-import { AdminLogsPage } from "../pages/admin/AdminLogsPage"
-import type { Route } from "../lib/router"
-import type { User } from "../lib/types"
+import {DashboardPage} from "../pages/DashboardPage"
+import {TasksPage} from "../pages/TasksPage"
+import {GoalsPage} from "../pages/GoalsPage"
+import {HabitsPage} from "../pages/HabitsPage"
+import {NotesPage} from "../pages/NotesPage"
+import {ProfilePage} from "../pages/ProfilePage"
+import {PomodoroPage} from "../pages/PomodoPage"
+import {AdminDashboardPage} from "../pages/admin/AdminDashboardPage"
+import {AdminUsersPage} from "../pages/admin/AdminUsersPage"
+import {AdminLogsPage} from "../pages/admin/AdminLogsPage"
+import type {Route} from "../lib/router"
+import type {User} from "../lib/types"
 import {QuotesPage} from "../pages/QuotesPage.tsx";
 import {MoodPage} from "../pages/MoodPage.tsx";
 
@@ -22,9 +22,11 @@ interface RouterProps {
     user?: User
 }
 
+// Componente Router para navegação entre páginas
 export const Router: React.FC<RouterProps> = ({ currentPath, onNavigate, user }) => {
     const isAdmin = user?.type === "admin"
 
+    // Função para renderizar a página atual com base no caminho
     const renderCurrentPage = () => {
         switch (currentPath) {
             case "/dashboard":
@@ -83,6 +85,7 @@ export const Router: React.FC<RouterProps> = ({ currentPath, onNavigate, user })
     return <>{renderCurrentPage()}</>
 }
 
+// Página para acesso não autorizado
 const UnauthorizedPage: React.FC = () => (
     <div className="text-center py-20">
         <div className="text-6xl mb-4">🚫</div>

@@ -1,6 +1,8 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
 
+
+// Pega todas as frases (do sistema e do usuário)
 export const getQuotes = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
@@ -12,6 +14,8 @@ export const getQuotes = async (req: Request, res: Response) => {
     res.json([...systemQuotes, ...userQuotes]);
 };
 
+
+// Cria uma nova frase para o usuário
 export const createQuote = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { text, author } = req.body;
@@ -32,6 +36,7 @@ export const createQuote = async (req: Request, res: Response) => {
     res.status(201).json(newQuote);
 };
 
+// Atualiza uma frase existente do usuário
 export const updateQuote = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { id } = req.params;
@@ -50,6 +55,7 @@ export const updateQuote = async (req: Request, res: Response) => {
     res.json(updated);
 };
 
+// Deleta uma frase existente do usuário
 export const deleteQuote = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { id } = req.params;

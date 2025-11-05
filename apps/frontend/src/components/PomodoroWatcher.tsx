@@ -1,9 +1,10 @@
 "use client"
-import { useEffect, useRef } from "react"
-import { PomodoroService } from "../services"
+import {useEffect, useRef} from "react"
+import {PomodoroService} from "../services"
 
 const STORAGE_KEY = "myfocus:pomodoro"
 
+// Componente que monitora o estado do temporizador Pomodoro e registra sessões concluídas
 export function PomodoroWatcher() {
     const handledRef = useRef<string | null>(null)
     useEffect(() => {

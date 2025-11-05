@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
+// Função genérica para fazer requisições HTTP
 async function request<T = any>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     endpoint: string,

@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Modal } from "../ui/Modal"
-import { Button } from "../ui/Button"
-import { Input } from "../ui/Input"
+import {useEffect, useState} from "react"
+import {Modal} from "../ui/Modal"
+import {Button} from "../ui/Button"
+import {Input} from "../ui/Input"
 import {toast} from "sonner";
 
 interface Habit {
@@ -29,6 +29,7 @@ interface HabitModalProps {
     isLoading?: boolean
 }
 
+// Componente Modal para criar/editar hábitos do usuário
 export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave, habit, isLoading  }) => {
     const [formData, setFormData] = useState({
         name: "",

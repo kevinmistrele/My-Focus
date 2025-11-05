@@ -7,6 +7,7 @@ interface HeaderProps {
     onMenuClick?: () => void
 }
 
+// Componente Header com botão de menu e saudação ao usuário
 export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
     return (
         <header className="bg-surface border-b border-custom px-6 py-4 lg:border-l-0">

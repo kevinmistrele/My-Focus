@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import {NextFunction, Request, Response} from "express";
 import jwt from "jsonwebtoken";
 
-import { JWT_SECRET } from "../config";
+import {JWT_SECRET} from "../config";
 
 interface JwtPayload {
     userId: string;
@@ -9,6 +9,8 @@ interface JwtPayload {
     exp: number;
 }
 
+
+// Middleware para verificar e validar o token JWT nas requisições
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 

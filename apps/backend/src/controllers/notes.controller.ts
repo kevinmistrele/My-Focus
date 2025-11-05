@@ -1,6 +1,8 @@
-import { Request, Response } from "express"
-import { prisma } from "../prisma/client"
+import {Request, Response} from "express"
+import {prisma} from "../prisma/client"
 
+
+//Pega as notas do usuário
 export const getNotes = async (req: Request, res: Response) => {
     const userId = (req as any).userId
 
@@ -11,7 +13,7 @@ export const getNotes = async (req: Request, res: Response) => {
 
     res.json(notes)
 }
-
+// Cria uma nova nota para o usuário
 export const createNote = async (req: Request, res: Response) => {
     const userId = (req as any).userId
     const { title, content, color, pinned } = req.body
@@ -33,6 +35,8 @@ export const createNote = async (req: Request, res: Response) => {
 
     res.status(201).json(note)
 }
+
+// Atualiza uma nota existente do usuário
 export const updateNote = async (req: Request, res: Response) => {
     const userId = (req as any).userId
     const { id } = req.params
@@ -57,6 +61,8 @@ export const updateNote = async (req: Request, res: Response) => {
     res.json(updated)
 }
 
+
+// Deleta uma nota do usuário
 export const deleteNote = async (req: Request, res: Response) => {
     const userId = (req as any).userId
     const { id } = req.params

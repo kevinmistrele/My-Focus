@@ -1,5 +1,5 @@
-import { prisma } from "../prisma/client"
-import {$Enums, Prisma} from "@prisma/client"
+import {prisma} from "../prisma/client"
+import {$Enums} from "@prisma/client"
 import ActivityType = $Enums.ActivityType;
 
 
@@ -11,6 +11,7 @@ interface LogActivityParams {
     details?: string
 }
 
+// Função para registrar uma atividade no log
 export const logActivity = async ({
                                       userId,
                                       userName,

@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
-import { logActivity } from "../services/logActivity";
-import {$Enums, Habit, HabitCheckin} from "@prisma/client";
-import { startOfDay, endOfDay } from 'date-fns'
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
+import {Habit, HabitCheckin} from "@prisma/client";
+import {endOfDay, startOfDay} from 'date-fns'
 
-
+//pega as metas do usuário
 export const getHabitsByUser = async (req: Request, res: Response) => {
     const user = (req as any).user;
 
@@ -36,6 +35,7 @@ export const getHabitsByUser = async (req: Request, res: Response) => {
     res.json(transformed);
 };
 
+// Pega o resumo dos hábitos do dia do usuário
 export const getTodayHabitSummary = async (req: Request, res: Response) => {
     const user = (req as any).user
 
@@ -73,6 +73,8 @@ export const getTodayHabitSummary = async (req: Request, res: Response) => {
     })
 }
 
+
+// Cria um novo hábito para o usuário
 export const createHabit = async (req: Request, res: Response) => {
     const user = (req as any).user;
 
@@ -112,7 +114,7 @@ export const createHabit = async (req: Request, res: Response) => {
     res.status(201).json(habit);
 };
 
-
+// Atualiza um hábito existente do usuário
 export const updateHabit = async (req: Request, res: Response) => {
     const user = (req as any).user;
 
@@ -129,6 +131,8 @@ export const updateHabit = async (req: Request, res: Response) => {
     res.json(updated);
 };
 
+
+// Marca ou desmarca o check-in de um hábito para o dia atual
 export const checkinHabit = async (req: Request, res: Response) => {
     const user = (req as any).user
     const habitId = req.params.id
@@ -207,7 +211,7 @@ export const checkinHabit = async (req: Request, res: Response) => {
     return res.json({ status: existingCheckin ? "unchecked" : "checked" })
 }
 
-
+// Deleta um hábito do usuário
 export const deleteHabit = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;

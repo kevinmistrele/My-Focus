@@ -1,6 +1,6 @@
-import { Header } from "../layout/Header"
-import { Sidebar } from "../layout/Sidebar"
-import { Router } from "../Router"
+import {Header} from "../layout/Header"
+import {Sidebar} from "../layout/Sidebar"
+import {Router} from "../Router"
 import type {User} from "../../lib/types.ts";
 import type {Route} from "../../lib/router.ts";
 
@@ -12,6 +12,7 @@ interface Props {
     setSidebarOpen: (open: boolean) => void
 }
 
+// Layout para usuários autenticados
 export function AuthenticatedLayout({
                                         user,
                                         currentPath,

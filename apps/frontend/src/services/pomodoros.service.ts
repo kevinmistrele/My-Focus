@@ -8,6 +8,7 @@ export interface PomodoroPayload {
     startTime?: Date
 }
 
+// Serviço para operações relacionadas às sessões Pomodoro
 export const PomodoroService = {
     /**
      * Lista todas as sessões Pomodoro do usuário autenticado

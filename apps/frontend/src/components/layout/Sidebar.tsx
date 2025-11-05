@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-import type { Route } from "../../lib/router"
-import type { User } from "../../lib/types"
+import type {Route} from "../../lib/router"
+import type {User} from "../../lib/types"
 import {useAuth} from "../../contexts/AuthContext.tsx";
+import versionData from "../../../../../version.json";
 
 interface SidebarProps {
     isOpen: boolean
@@ -12,9 +13,11 @@ interface SidebarProps {
     user: User
 }
 
-
+// Componente Sidebar para navegação lateral
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigate, user }) => {
+    // Hook de autenticação para logout
     const { logout } = useAuth()
+    // Itens do menu de navegação
     const menuItems = [
         { path: "/dashboard", label: "Dashboard", icon: "📊" },
         { path: "/tasks", label: "Tarefas", icon: "✅" },
@@ -26,12 +29,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
         { path: "/notes", label: "Notas", icon: "📝" },
     ]
 
+
+    // Itens do menu de administração
     const adminItems = [
         { path: "/admin/dashboard", label: "Admin Dashboard", icon: "⚙️" },
         { path: "/admin/users", label: "Usuários", icon: "👥" },
         { path: "/admin/logs", label: "Logs", icon: "📋" },
     ]
 
+    // Itens do menu de perfil
     const profileItems = [
         { path: "/profile", label: "Perfil", icon: "👤" },
     ]
@@ -129,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
                             <span className="font-medium">Sair</span>
                         </button>
                         <div className="flex items-center justify-between text-sm text-muted">
-                            <span>MyFocus v1.0</span>
+                            <span>MyFocus {versionData.version}</span>
                         </div>
                     </div>
                 </div>

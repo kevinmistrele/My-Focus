@@ -1,10 +1,11 @@
-import { Router } from "express";
+import {Router} from "express";
 import {
+    createTask,
+    deleteTask,
     getAllTasks,
     getTaskById,
-    createTask,
+    getTodayTaskSummary,
     updateTask,
-    deleteTask, getTodayTaskSummary,
 } from "../controllers/task.controller";
 import {requireUser} from "../middleware/requireUser";
 import {verifyToken} from "../middleware/verifyToken";
@@ -12,7 +13,7 @@ import {verifyToken} from "../middleware/verifyToken";
 const router = Router();
 
 router.use(verifyToken);
-
+// Rotas para gerenciamento de tarefas do usuário
 router.get("/", requireUser, getAllTasks);
 router.get("/today-summary", requireUser, getTodayTaskSummary)
 router.get("/:id", requireUser,  getTaskById);

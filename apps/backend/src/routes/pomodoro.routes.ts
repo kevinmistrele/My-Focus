@@ -1,9 +1,10 @@
-import { Router } from "express";
+import {Router} from "express";
 import {
-    getPomodorosByUser,
     createPomodoroSession,
+    deletePomodoroSession,
+    getPomodorosByUser,
+    getPomodoroSummary,
     updatePomodoroSession,
-    deletePomodoroSession, getPomodoroSummary,
 } from "../controllers/pomodoro.controller";
 import {requireUser} from "../middleware/requireUser";
 import {verifyToken} from "../middleware/verifyToken";
@@ -11,7 +12,7 @@ import {verifyToken} from "../middleware/verifyToken";
 const router = Router();
 
 router.use(verifyToken);
-
+// Rotas para gerenciamento de sessões Pomodoro do usuário
 router.get("/", requireUser, getPomodorosByUser);
 router.get("/pomodoro-sumary", requireUser, getPomodoroSummary);
 router.post("/", requireUser, createPomodoroSession);

@@ -10,6 +10,8 @@ export interface UserPayload {
     avatar?: string
 }
 
+
+// Serviço para gerenciar usuários
 export const UserService = {
     /**
      * Lista todos os usuários (admin)

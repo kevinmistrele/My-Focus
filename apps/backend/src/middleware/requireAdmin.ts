@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import { prisma } from "../prisma/client";
+import {NextFunction, Request, Response} from "express";
+import {prisma} from "../prisma/client";
 
+
+// Middleware para verificar se o usuário é admin
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
     const userId = (req as any).userId;
 
