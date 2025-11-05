@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-import type { Route } from "../../lib/router"
-import type { User } from "../../lib/types"
+import type {Route} from "../../lib/router"
+import type {User} from "../../lib/types"
 import {useAuth} from "../../contexts/AuthContext.tsx";
+import versionData from "../../../../../version.json";
 
 interface SidebarProps {
     isOpen: boolean
@@ -129,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
                             <span className="font-medium">Sair</span>
                         </button>
                         <div className="flex items-center justify-between text-sm text-muted">
-                            <span>MyFocus v1.0</span>
+                            <span>MyFocus {versionData.version}</span>
                         </div>
                     </div>
                 </div>
