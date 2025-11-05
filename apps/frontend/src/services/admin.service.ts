@@ -1,9 +1,6 @@
-import { api } from "../lib/api"
+import {api} from "../lib/api"
 import type {AdminStats} from "../lib/types.ts";
-
-
-
-
+// Serviço para operações administrativas
 export const AdminService = {
     getStats: async (): Promise<AdminStats | null> => {
         return await api.get("/admin/stats") // ou direto: return api.get(...)
