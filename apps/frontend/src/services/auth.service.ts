@@ -33,6 +33,8 @@ export const AuthService = {
     resetPassword: (token: string, newPassword: string) =>
         api.post("/auth/reset-password", {token, newPassword}),
 
+
+    // Obtém o usuário atualmente autenticado
     getCurrentUser: async (): Promise<User | null> => {
         return await api.get<User>("/auth/me");
     }
