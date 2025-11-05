@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { Card } from "../ui/Card"
-import { Button } from "../ui/Button"
-import type { Task } from "../../lib/types"
-import { formatDate } from "../../lib/utils"
+import {Card} from "../ui/Card"
+import {Button} from "../ui/Button"
+import type {Task} from "../../lib/types"
+import {formatDate} from "../../lib/utils"
 
 interface TaskCardProps {
     task: Task
@@ -19,6 +19,7 @@ const priorityColors = {
     high: "bg-red-500",
 }
 
+// Componente para exibir um cartão de tarefa
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete }) => {
     return (
         <Card className="hover:shadow-xl transition-shadow duration-200">
