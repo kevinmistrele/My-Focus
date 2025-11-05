@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
-import { logActivity } from "../services/logActivity";
-import { $Enums } from "@prisma/client";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
+import {logActivity} from "../services/logActivity";
+import {$Enums} from "@prisma/client";
 
+
+// Pega as sessões Pomodoro do usuário
 export const getPomodorosByUser = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { page = 1, limit = 10 } = req.query;
@@ -41,7 +43,7 @@ export const getPomodorosByUser = async (req: Request, res: Response) => {
     });
 };
 
-
+// Pega o resumo das sessões Pomodoro do usuário
 export const getPomodoroSummary = async (req: Request, res: Response) => {
     const user = (req as any).user
 
@@ -63,7 +65,7 @@ export const getPomodoroSummary = async (req: Request, res: Response) => {
     })
 }
 
-
+// Cria uma nova sessão Pomodoro para o usuário
 export const createPomodoroSession = async (req: Request, res: Response) => {
     const { duration, type } = req.body;
     const user = (req as any).user;
@@ -94,6 +96,8 @@ export const createPomodoroSession = async (req: Request, res: Response) => {
     res.status(201).json(session);
 };
 
+// Atualiza uma sessão Pomodoro existente
+
 export const updatePomodoroSession = async (req: Request, res: Response) => {
     const session = await prisma.pomodoroSession.update({
         where: { id: req.params.id },
@@ -111,6 +115,8 @@ export const updatePomodoroSession = async (req: Request, res: Response) => {
     res.json(session);
 };
 
+
+// Deleta uma sessão Pomodoro do usuário
 export const deletePomodoroSession = async (req: Request, res: Response) => {
     const session = await prisma.pomodoroSession.delete({ where: { id: req.params.id } });
 

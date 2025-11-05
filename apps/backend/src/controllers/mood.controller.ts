@@ -1,7 +1,8 @@
-import { Request, Response } from "express";
+import {Request, Response} from "express";
 import {MoodLog} from "@prisma/client";
 import {prisma} from "../prisma/client";
 
+// Pega os registros de humor do usuário
 export const getMoods = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
@@ -35,6 +36,8 @@ export const getMoods = async (req: Request, res: Response) => {
     res.json({ moods, stats });
 };
 
+
+// Cria ou atualiza o registro de humor do dia
 export const createMood = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { mood, note } = req.body;
@@ -74,7 +77,7 @@ export const createMood = async (req: Request, res: Response) => {
     res.status(201).json(newMood);
 };
 
-
+// Atualiza um registro de humor existente
 export const updateMood = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { id } = req.params;
@@ -93,6 +96,7 @@ export const updateMood = async (req: Request, res: Response) => {
     res.json(updated);
 };
 
+// Deleta um registro de humor
 export const deleteMood = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const { id } = req.params;

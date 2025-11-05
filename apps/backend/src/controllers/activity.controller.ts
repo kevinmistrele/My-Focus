@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
 
+// Pega os logs de atividade de um usuário específico
 export const getActivitiesByUser = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
@@ -16,6 +17,7 @@ export const getActivitiesByUser = async (req: Request, res: Response) => {
     }
 };
 
+// Pega todos os logs de atividade com paginação e contagem por tipo
 export const getAllActivities = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1
     const limit = parseInt(req.query.limit as string) || 20

@@ -1,7 +1,7 @@
-import { Request, Response } from "express"
-import { prisma } from "../prisma/client"
-import { startOfDay, endOfDay, startOfMonth } from "date-fns"
-
+import {Request, Response} from "express"
+import {prisma} from "../prisma/client"
+import {endOfDay, startOfDay, startOfMonth} from "date-fns"
+//Pega as estatísticas administrativas do sistema
 export const getAdminStats = async (_req: Request, res: Response) => {
     const now = new Date()
 

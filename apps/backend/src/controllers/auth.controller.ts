@@ -1,14 +1,16 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import {logActivity} from "../services/logActivity";
-import { $Enums } from "@prisma/client";
+import {$Enums} from "@prisma/client";
 import {isSameDay, startOfDay, subDays} from "date-fns";
 import {sendResetPasswordEmail} from "../services/emailService";
 
 
-import { JWT_SECRET } from "../config";
+import {JWT_SECRET} from "../config";
+
+// registra um novo usuário no sistema e cria um log de atividade para o registro do usuário
 export const register = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
 
@@ -32,6 +34,8 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json({ message: "User registered", user: { id: user.id, email: user.email } });
 };
 
+
+// login de usuário, atualização de streak de login, geração de token JWT e criação de log de atividade para o login do usuário
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body
 
@@ -92,7 +96,7 @@ export const login = async (req: Request, res: Response) => {
     });
 }
 
-
+// solicita redefinição de senha, gera token JWT, envia email de redefinição e cria log de atividade para a solicitação de redefinição de senha
 export const forgotPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
 
@@ -113,6 +117,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     res.json({ message: "Password reset link sent" });
 };
+
+// redefine a senha do usuário, atualiza a senha no banco de dados e cria log de atividade para a redefinição de senha
 export const resetPassword = async (req: Request, res: Response) => {
     const { token, newPassword } = req.body;
 

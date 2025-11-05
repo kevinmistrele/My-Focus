@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
-import { logActivity } from "../services/logActivity";
-import { $Enums } from "@prisma/client";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
+import {logActivity} from "../services/logActivity";
+import {$Enums} from "@prisma/client";
 
+
+//Pega as metas do usuário
 export const getGoalsByUser = async (req: Request, res: Response) => {
     const user = (req as any).user;
 
@@ -14,6 +16,7 @@ export const getGoalsByUser = async (req: Request, res: Response) => {
     res.json(goals);
 };
 
+//Cria uma nova meta para o usuário
 export const createGoal = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const {
@@ -60,7 +63,7 @@ export const createGoal = async (req: Request, res: Response) => {
     res.status(201).json(goal);
 };
 
-
+//Atualiza uma meta existente do usuário
 export const updateGoal = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { id } = req.params;
@@ -104,6 +107,7 @@ export const updateGoal = async (req: Request, res: Response) => {
     res.json(updated);
 };
 
+// Deleta uma meta do usuário
 export const deleteGoal = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const goal = await prisma.goal.findUnique({ where: { id: req.params.id } });

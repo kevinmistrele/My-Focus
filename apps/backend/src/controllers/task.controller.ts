@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
-import { prisma } from "../prisma/client";
-import { logActivity } from "../services/logActivity";
+import {Request, Response} from "express";
+import {prisma} from "../prisma/client";
+import {logActivity} from "../services/logActivity";
 import {$Enums, Task} from "@prisma/client";
 
+// Pega as tarefas do usuário com paginação
 export const getAllTasks = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { page = 1, limit = 10 } = req.query;
@@ -36,6 +37,8 @@ export const getAllTasks = async (req: Request, res: Response) => {
     });
 };
 
+
+// Pega o resumo das tarefas do dia do usuário
 export const getTodayTaskSummary = async (req: Request, res: Response) => {
     const user = (req as any).user
     const start = new Date()
@@ -73,6 +76,8 @@ export const getTodayTaskSummary = async (req: Request, res: Response) => {
     })
 }
 
+
+// Pega uma tarefa específica do usuário
 export const getTaskById = async (req: Request, res: Response) => {
     const user = (req as any).user;
 
@@ -87,6 +92,8 @@ export const getTaskById = async (req: Request, res: Response) => {
 
     res.json(task);
 };
+
+//Cria uma nova tarefa para o usuário
 export const createTask = async (req: Request, res: Response) => {
     const { title, description, dueDate, priority, tags } = req.body;
     const user = (req as any).user;
@@ -120,7 +127,7 @@ export const createTask = async (req: Request, res: Response) => {
     res.status(201).json(task);
 };
 
-
+// Atualiza uma tarefa existente do usuário
 export const updateTask = async (req: Request, res: Response) => {
     const task = await prisma.task.update({
         where: { id: req.params.id },
@@ -138,6 +145,8 @@ export const updateTask = async (req: Request, res: Response) => {
     res.json(task);
 };
 
+
+// Deleta uma tarefa do usuário
 export const deleteTask = async (req: Request, res: Response) => {
     const task = await prisma.task.delete({ where: { id: req.params.id } });
 
