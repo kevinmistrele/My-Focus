@@ -1,12 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Modal } from "../ui/Modal"
-import { Button } from "../ui/Button"
-import { Input } from "../ui/Input"
-import type { Task } from "../../lib/types"
-import { generateId } from "../../lib/utils"
+import {useEffect, useState} from "react"
+import {Modal} from "../ui/Modal"
+import {Button} from "../ui/Button"
+import {Input} from "../ui/Input"
+import type {Task} from "../../lib/types"
+import {generateId} from "../../lib/utils"
 import {toast} from "sonner";
 
 interface TaskModalProps {
@@ -17,6 +17,7 @@ interface TaskModalProps {
     isLoading?: boolean
 }
 
+// Componente Modal para criar/editar tarefas do usuário
 export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, isLoading }) => {
     const [formData, setFormData] = useState({
         title: "",
