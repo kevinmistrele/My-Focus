@@ -5,7 +5,7 @@ interface PaginationParams {
     limit?: number
 }
 
-
+// Serviço para lidar com logs de atividades do sistema
 export const LogsService = {
     /**
      * Retorna todos os logs do sistema (admin)
