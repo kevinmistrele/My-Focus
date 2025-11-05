@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import {NextFunction, Request, Response} from "express";
 
+
+// Middleware global para tratamento de erros
 export function errorHandler(
     err: any,
     _: Request,

@@ -1,8 +1,10 @@
 import {NextFunction, Request, Response} from "express";
 import * as jwt from "jsonwebtoken";
 
-import { JWT_SECRET } from "../config";
+import {JWT_SECRET} from "../config";
 
+
+// Middleware to require authentication via JWT
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
