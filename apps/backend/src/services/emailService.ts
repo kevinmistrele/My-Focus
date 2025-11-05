@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 
+// Configuração do transporte de e-mail usando o Nodemailer
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -7,7 +8,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS,
     },
 });
-
+// Função para enviar e-mail de redefinição de senha
 export const sendResetPasswordEmail = async (to: string, token: string) => {
     const resetLink = `http://localhost:5173/reset-password?token=${token}`;
     const mailOptions = {
