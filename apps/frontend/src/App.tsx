@@ -1,18 +1,20 @@
-import { useState } from "react"
-import { Header } from "./components/layout/Header"
-import { Sidebar } from "./components/layout/Sidebar"
-import { Router } from "./components/Router"
-import { LoginPage } from "./pages/LoginPage"
-import type { Route } from "./lib/router"
+import {useState} from "react"
+import {Header} from "./components/layout/Header"
+import {Sidebar} from "./components/layout/Sidebar"
+import {Router} from "./components/Router"
+import {LoginPage} from "./pages/LoginPage"
+import type {Route} from "./lib/router"
 import "./styles/global.css"
-import { useAuth } from "./contexts/AuthContext"
+import {useAuth} from "./contexts/AuthContext"
 import {PomodoroWatcher} from "./components/PomodoroWatcher.tsx";
 
+// Componente principal da aplicação
 export default function App() {
     const { user, loading, login } = useAuth()
     const [currentPath, setCurrentPath] = useState<Route>("/dashboard")
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
+    // Função para navegar entre páginas
     const handleNavigate = (path: string) => {
         setCurrentPath(path as Route)
         setSidebarOpen(false)
@@ -20,6 +22,7 @@ export default function App() {
 
     if (loading) return null
 
+    // Se o usuário não estiver autenticado, exibe a página de login
     if (!user) {
         return <LoginPage onLogin={(user, token) => login(user, token)} />
     }
