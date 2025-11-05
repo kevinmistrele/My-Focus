@@ -1,4 +1,4 @@
-import { api } from "../lib/api.ts"
+import {api} from "../lib/api.ts"
 
 export interface Quote {
     id: string
@@ -13,6 +13,7 @@ export interface QuotePayload {
     author?: string
 }
 
+// Serviço para gerenciar citações (quotes)
 export const QuotesService = {
     getAll: () => api.get<Quote[]>("/quotes"),
 
