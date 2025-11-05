@@ -20,6 +20,8 @@ export interface TaskSummary {
     recentTasks: Task[]
 }
 
+
+// Serviço para gerenciar tarefas (tasks)
 export const TaskService = {
     /**
      * Lista todas as tarefas do usuário autenticado
