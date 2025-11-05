@@ -1,5 +1,5 @@
 import {api} from "../lib/api.ts";
-import type { Habit } from "../lib/types"
+import type {Habit} from "../lib/types"
 
 export interface HabitPayload {
     name: string;
@@ -24,7 +24,10 @@ export interface HabitSummary {
     }[]
 }
 
+// Serviço para gerenciar hábitos
 export const HabitService = {
+
+    //  
     getAll: (): Promise<Habit[] | null> => api.get("/habits"),
 
     getTodaySummary: (): Promise<HabitSummary | null> => {
