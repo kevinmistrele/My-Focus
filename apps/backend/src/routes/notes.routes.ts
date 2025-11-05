@@ -1,13 +1,13 @@
-import { Router } from "express"
-import { verifyToken } from "../middleware/verifyToken"
-import { requireUser } from "../middleware/requireUser"
+import {Router} from "express"
+import {verifyToken} from "../middleware/verifyToken"
+import {requireUser} from "../middleware/requireUser"
 import {createNote, deleteNote, getNotes, updateNote} from "../controllers/notes.controller";
 
 
 const router = Router()
 
 router.use(verifyToken)
-
+// Rotas para gerenciamento de notas do usuário
 router.get("/", requireUser, getNotes)
 router.post("/", requireUser, createNote)
 router.put("/:id", requireUser, updateNote)

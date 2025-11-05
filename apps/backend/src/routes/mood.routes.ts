@@ -1,4 +1,4 @@
-import { Router } from "express";
+import {Router} from "express";
 import {createMood, deleteMood, getMoods, updateMood} from "../controllers/mood.controller";
 import {verifyToken} from "../middleware/verifyToken";
 import {requireUser} from "../middleware/requireUser";
@@ -6,7 +6,7 @@ import {requireUser} from "../middleware/requireUser";
 const router = Router();
 
 router.use(verifyToken);
-
+// Rotas para gerenciamento de humores do usuário
 router.get("/", requireUser, getMoods);
 router.post("/",requireUser, createMood);
 router.put("/:id", requireUser, updateMood);

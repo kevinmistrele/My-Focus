@@ -1,9 +1,11 @@
-import { Router } from "express";
+import {Router} from "express";
 import {
-    getHabitsByUser,
+    checkinHabit,
     createHabit,
+    deleteHabit,
+    getHabitsByUser,
+    getTodayHabitSummary,
     updateHabit,
-    deleteHabit, getTodayHabitSummary, checkinHabit,
 } from "../controllers/habit.controller";
 import {requireUser} from "../middleware/requireUser";
 import {verifyToken} from "../middleware/verifyToken";
@@ -11,7 +13,7 @@ import {verifyToken} from "../middleware/verifyToken";
 const router = Router();
 
 router.use(verifyToken);
-
+// Rotas para gerenciamento de hábitos do usuário
 router.get("/", requireUser, getHabitsByUser);
 router.post("/:id/checkin",requireUser, checkinHabit)
 router.get("/today-summary", requireUser, getTodayHabitSummary)
