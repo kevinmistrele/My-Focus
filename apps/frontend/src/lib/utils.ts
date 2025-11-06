@@ -35,3 +35,20 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
         timeout = setTimeout(() => func(...args), wait)
     }
 }
+
+export const toInputDate = (d: Date) => {
+    const z = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    return z.toISOString().slice(0, 10); // YYYY-MM-DD
+};
+export const addDays = (d: Date, n: number) => {
+    const x = new Date(d);
+    x.setDate(x.getDate() + n);
+    return x;
+};
+export const addMonths = (d: Date, n: number) => {
+    const x = new Date(d);
+    x.setMonth(x.getMonth() + n);
+    return x;
+};
+export const isBefore = (a: Date, b: Date) => +new Date(a.getFullYear(), a.getMonth(), a.getDate()) < +new Date(b.getFullYear(), b.getMonth(), b.getDate());
+export const isAfter = (a: Date, b: Date) => +new Date(a.getFullYear(), a.getMonth(), a.getDate()) > +new Date(b.getFullYear(), b.getMonth(), b.getDate());
