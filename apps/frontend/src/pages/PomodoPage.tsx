@@ -13,7 +13,6 @@ export const PomodoroPage: React.FC = () => {
     const [customMinutes, setCustomMinutes] = useState(25)
     const [timeLeft, setTimeLeft] = useState(25 * 60) // base
     const [isActive, setIsActive] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
     const [startTime, setStartTime] = useState<number | null>(null)
     const [hydrated, setHydrated] = useState(false)
 
@@ -22,6 +21,13 @@ export const PomodoroPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [totalMinutes, setTotalMinutes] = useState(0)
+    const [isEditing, setIsEditing] = useState(false)
+    const [draftMinutes, setDraftMinutes] = useState<string>("" + customMinutes)
+
+    useEffect(() => {
+        if (isEditing) setDraftMinutes(String(customMinutes))
+    }, [isEditing, customMinutes])
+
 
     useEffect(() => {
         const raw = localStorage.getItem(STORAGE_KEY)
@@ -159,6 +165,17 @@ export const PomodoroPage: React.FC = () => {
         setTimeLeft(customMinutes * 60)
     }
 
+    const applyMinutes = () => {
+        const n = Number(draftMinutes)
+        if (!draftMinutes || Number.isNaN(n)) {
+            setIsEditing(false)
+            return
+        }
+        const clamped = Math.max(1, Math.min(120, n))
+        handleTimeChange(clamped)
+        setIsEditing(false)
+    }
+
     const handleTimeChange = (minutes: number) => {
         if (minutes > 0 && minutes <= 120) {
             setCustomMinutes(minutes)
@@ -218,15 +235,22 @@ export const PomodoroPage: React.FC = () => {
                     {isEditing ? (
                         <div className="flex items-center space-x-2">
                             <Input
-                                type="number"
-                                value={customMinutes}
-                                onChange={(e) => handleTimeChange(Number.parseInt(e.target.value) || 25)}
+                                type="text"                 // evita quirks do type="number"
+                                inputMode="numeric"         // mostra teclado numérico no mobile
+                                pattern="\d*"
+                                value={draftMinutes}
+                                onChange={(e) =>
+                                    setDraftMinutes(e.target.value.replace(/[^\d]/g, "")) // só dígitos
+                                }
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") applyMinutes()
+                                    if (e.key === "Escape") setIsEditing(false)
+                                }}
                                 className="w-20 text-center"
-                                min="1"
-                                max="120"
+                                placeholder="min"
                             />
                             <span className="text-secondary">min</span>
-                            <Button size="sm" onClick={() => setIsEditing(false)}>OK</Button>
+                            <Button size="sm" onClick={applyMinutes}>OK</Button>
                         </div>
                     ) : (
                         <button
