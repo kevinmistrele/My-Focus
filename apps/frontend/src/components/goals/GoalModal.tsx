@@ -4,6 +4,8 @@ import {Modal} from "../ui/Modal"
 import {Button} from "../ui/Button"
 import {Input} from "../ui/Input"
 import {toast} from "sonner";
+import {toInputDate} from "../../lib/utils.ts";
+import {addDays, addMonths, isAfter, isBefore} from "date-fns";
 
 interface Goal {
     id: string
@@ -27,6 +29,12 @@ interface GoalModalProps {
 
 // Componente Modal para criar/editar metas do usuário
 export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, goal, isLoading }) => {
+    const today = new Date();
+    const minShort = toInputDate(today);                        // >= hoje
+    const maxShort = toInputDate(addMonths(today, 3));          // <= +3 meses
+    const minLongDate = addDays(addMonths(today, 3), 1);        // > +3 meses
+    const minLong = toInputDate(minLongDate);
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -36,24 +44,25 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
     })
 
     useEffect(() => {
-        if (goal) {
-            setFormData({
-                title: goal.title,
-                description: goal.description,
-                type: goal.type,
-                category: goal.category,
-                targetDate: goal.targetDate ? goal.targetDate.toISOString().split("T")[0] : "",
-            })
+        const d = formData.targetDate ? new Date(formData.targetDate) : null;
+        if (!d) return;
+
+        if (formData.type === "short") {
+            const max = new Date(maxShort);
+            const min = new Date(minShort);
+            let next = d;
+            if (isBefore(next, min)) next = min;
+            if (isAfter(next, max)) next = max;
+            if (toInputDate(next) !== formData.targetDate) {
+                setFormData(prev => ({...prev, targetDate: toInputDate(next)}));
+            }
         } else {
-            setFormData({
-                title: "",
-                description: "",
-                type: "short",
-                category: "",
-                targetDate: "",
-            })
+            const min = new Date(minLong);
+            if (isBefore(d, min)) {
+                setFormData(prev => ({...prev, targetDate: toInputDate(min)}));
+            }
         }
-    }, [goal, isOpen])
+    }, [formData.type]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,20 +72,42 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
             return;
         }
 
+        const picked = new Date(formData.targetDate);
+        const startToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        // regra: não pode antes de hoje
+        if (isBefore(picked, startToday)) {
+            toast.error("A data não pode ser anterior a hoje.");
+            return;
+        }
+
+        if (formData.type === "short") {
+            const max = new Date(maxShort);
+            if (isAfter(picked, max)) {
+                toast.error("Meta de curto prazo deve ser em até 3 meses a partir de hoje.");
+                return;
+            }
+        } else {
+            const min = new Date(minLong);
+            if (isBefore(picked, min)) {
+                toast.error("Meta de longo prazo deve ser após 3 meses a partir de hoje.");
+                return;
+            }
+        }
+
         const goalData: Goal = {
             id: goal?.id || crypto.randomUUID(),
             title: formData.title.trim(),
             description: formData.description?.trim() || "",
             type: formData.type,
             category: formData.category?.trim() || "Geral",
-            targetDate: new Date(formData.targetDate),
-            progress: goal?.progress || 0,
-            completed: goal?.completed || false,
-            createdAt: goal?.createdAt || new Date(),
+            targetDate: picked,
+            progress: goal?.progress ?? 0,
+            completed: goal?.completed ?? false,
+            createdAt: goal?.createdAt ?? new Date(),
         };
 
         await onSave(goalData);
-
         setTimeout(() => onClose(), 150);
     };
 
@@ -157,6 +188,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
                     label="Data Alvo"
                     type="date"
                     value={formData.targetDate}
+                    min={formData.type === "short" ? minShort : minLong}
+                    max={formData.type === "short" ? maxShort : undefined}
                     onChange={(e) => setFormData((prev) => ({ ...prev, targetDate: e.target.value }))}
                     required
                 />
