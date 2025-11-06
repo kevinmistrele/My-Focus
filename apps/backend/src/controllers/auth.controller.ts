@@ -9,10 +9,22 @@ import {sendResetPasswordEmail} from "../services/emailService";
 
 
 import {JWT_SECRET} from "../config";
+import {formatName, normalizeEmail} from "../utils/normalization";
 
 // registra um novo usuário no sistema e cria um log de atividade para o registro do usuário
 export const register = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body;
+    const rawName = String(req.body?.name ?? "");
+    const rawEmail = String(req.body?.email ?? "");
+    const password = String(req.body?.password ?? "");
+
+    // normalização
+    const name = formatName(rawName);
+    const email = normalizeEmail(rawEmail);
+
+    // validações simples
+    if (!name || !email || !password) {
+        return res.status(400).json({error: "Nome, e-mail e senha são obrigatórios."});
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) return res.status(409).json({ error: "Email already registered" });
@@ -37,37 +49,33 @@ export const register = async (req: Request, res: Response) => {
 
 // login de usuário, atualização de streak de login, geração de token JWT e criação de log de atividade para o login do usuário
 export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body
+    const email = normalizeEmail(String(req.body?.email ?? ""));
+    const password = String(req.body?.password ?? "");
 
-    const user = await prisma.user.findUnique({ where: { email } })
-    if (!user || !user.password) return res.status(401).json({ error: "Invalid credentials" })
+    if (!email || !password) return res.status(400).json({error: "Credenciais inválidas"});
 
-    const valid = await bcrypt.compare(password, user.password)
-    if (!valid) return res.status(401).json({ error: "Invalid credentials" })
+    const user = await prisma.user.findUnique({where: {email}});
+    if (!user || !user.password) return res.status(401).json({error: "Invalid credentials"});
 
-    const today = startOfDay(new Date())
-    const yesterday = subDays(today, 1)
-    const lastStreakDate = user.lastStreakDate ? startOfDay(user.lastStreakDate) : null
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({error: "Invalid credentials"});
 
-    let newStreak = 1
+    const today = startOfDay(new Date());
+    const yesterday = subDays(today, 1);
+    const lastStreakDate = user.lastStreakDate ? startOfDay(user.lastStreakDate) : null;
+
+    let newStreak = 1;
     if (lastStreakDate) {
-        if (isSameDay(lastStreakDate, today)) {
-            newStreak = user.loginStreak
-        } else if (isSameDay(lastStreakDate, yesterday)) {
-            newStreak = user.loginStreak + 1
-        }
+        if (isSameDay(lastStreakDate, today)) newStreak = user.loginStreak;
+        else if (isSameDay(lastStreakDate, yesterday)) newStreak = user.loginStreak + 1;
     }
 
     await prisma.user.update({
         where: { id: user.id },
-        data: {
-            lastLogin: new Date(),
-            loginStreak: newStreak,
-            lastStreakDate: today,
-        },
-    })
+        data: {lastLogin: new Date(), loginStreak: newStreak, lastStreakDate: today},
+    });
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" })
+    const token = jwt.sign({userId: user.id}, JWT_SECRET, {expiresIn: "7d"});
 
     await logActivity({
         userId: user.id,
@@ -75,30 +83,20 @@ export const login = async (req: Request, res: Response) => {
         action: "Login",
         type: $Enums.ActivityType.user,
         details: `Usuário ${user.email} fez login.`,
-    })
+    });
 
     const completeUser = await prisma.user.findUnique({
         where: { id: user.id },
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-            createdAt: true,
-            type: true,
-            loginStreak: true,
-        },
+        select: {id: true, name: true, email: true, avatar: true, createdAt: true, type: true, loginStreak: true},
     });
 
-    res.json({
-        token,
-        user: completeUser,
-    });
-}
+    res.json({token, user: completeUser});
+};
 
 // solicita redefinição de senha, gera token JWT, envia email de redefinição e cria log de atividade para a solicitação de redefinição de senha
 export const forgotPassword = async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const email = normalizeEmail(String(req.body?.email ?? ""));
+    if (!email) return res.status(400).json({error: "Email é obrigatório"});
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ error: "User not found" });
