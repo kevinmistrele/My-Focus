@@ -1,8 +1,6 @@
-"use client"
-
 import type React from "react"
-import { Modal } from "./Modal"
-import { Button } from "./Button"
+import {Modal} from "./Modal"
+import {Button} from "./Button"
 
 interface ConfirmModalProps {
     isOpen: boolean

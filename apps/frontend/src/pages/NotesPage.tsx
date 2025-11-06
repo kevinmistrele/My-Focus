@@ -1,14 +1,10 @@
-"use client"
-
-import React, {useEffect} from "react"
-import { useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
+import React, {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
 import type {Note} from "../lib/types.ts";
 import {NoteService} from "../services/notes.service.ts";
-import { toast } from "sonner"
-
+import {toast} from "sonner"
 
 
 export const NotesPage: React.FC = () => {

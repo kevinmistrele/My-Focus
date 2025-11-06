@@ -1,13 +1,11 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
-import { Modal } from "../components/ui/Modal"
+import {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
+import {Modal} from "../components/ui/Modal"
 import {QuotesService} from "../services/quotes.service.ts";
-import { toast } from "sonner"
+import {toast} from "sonner"
 
 interface Quote {
     id: string

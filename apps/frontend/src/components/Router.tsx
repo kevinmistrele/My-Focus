@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import {DashboardPage} from "../pages/DashboardPage"
 import {TasksPage} from "../pages/TasksPage"

@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import type {Route} from "../../lib/router"
 import type {User} from "../../lib/types"

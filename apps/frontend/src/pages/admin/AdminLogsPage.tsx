@@ -1,11 +1,9 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Card } from "../../components/ui/Card"
-import { Button } from "../../components/ui/Button"
-import { Input } from "../../components/ui/Input"
-import type { ActivityLog } from "../../lib/types"
+import {useEffect, useState} from "react"
+import {Card} from "../../components/ui/Card"
+import {Button} from "../../components/ui/Button"
+import {Input} from "../../components/ui/Input"
+import type {ActivityLog} from "../../lib/types"
 import {LogsService} from "../../services";
 
 export const AdminLogsPage: React.FC = () => {

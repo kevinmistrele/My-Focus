@@ -1,8 +1,6 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Card } from "../../components/ui/Card"
+import {useEffect, useState} from "react"
+import {Card} from "../../components/ui/Card"
 import {AdminService} from "../../services/admin.service.ts";
 import type {AdminStats} from "../../lib/types.ts";
 import {formatDistanceToNow} from "date-fns";

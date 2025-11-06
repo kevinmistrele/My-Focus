@@ -1,13 +1,11 @@
-"use client"
-
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
-import { formatTime } from "../lib/utils"
-import { PomodoroService } from "../services"
-import { toast } from "sonner"
+import {useCallback, useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
+import {formatTime} from "../lib/utils"
+import {PomodoroService} from "../services"
+import {toast} from "sonner"
 
 const STORAGE_KEY = "myfocus:pomodoro"
 
