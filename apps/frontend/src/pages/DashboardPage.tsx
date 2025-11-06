@@ -1,8 +1,6 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
+import {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
 import {HabitService, PomodoroService, TaskService} from "../services";
 import {useAuth} from "../contexts/AuthContext.tsx";
 import {toast} from "sonner";

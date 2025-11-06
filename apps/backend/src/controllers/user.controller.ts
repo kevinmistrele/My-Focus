@@ -3,6 +3,7 @@ import {logActivity} from "../services/logActivity";
 import {$Enums} from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import {prisma} from "../prisma/client";
+import {formatName, normalizeEmail} from "../utils/normalization";
 
 
 // Pega Todos os usuários do sistema
@@ -17,6 +18,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
             skip,
             take: limit,
             orderBy: { createdAt: 'desc' },
+            select: {
+                id: true, name: true, email: true, avatar: true,
+                type: true, createdAt: true, lastLogin: true, loginStreak: true
+            },
         }),
         prisma.user.count()
     ])
@@ -83,23 +88,24 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-    const { name, email, avatar, type, password } = req.body;
+    let {name, email, avatar, type, password} = req.body;
 
-    if (!password) {
-        return res.status(400).json({ error: "Senha é obrigatória." });
-    }
+    if (!password) return res.status(400).json({error: "Senha é obrigatória."});
+
+    name = formatName(String(name ?? ""));
+    email = normalizeEmail(String(email ?? ""));
+
+    // impede duplicidade por casing
+    const exists = await prisma.user.findUnique({where: {email}});
+    if (exists) return res.status(409).json({error: "Email already registered"});
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-        data: {
-            name,
-            email,
-            avatar,
-            type,
-            password: hashedPassword,
-        },
+        data: {name, email, avatar, type, password: hashedPassword},
+        select: {id: true, name: true, email: true, avatar: true, type: true, createdAt: true},
     });
+
     await logActivity({
         userId: user.id,
         userName: user.name,
@@ -169,18 +175,62 @@ export const getUserStats = async (req: Request, res: Response) => {
 
 // Atualiza as proprias informações
 export const updateMe = async (req: Request, res: Response) => {
-    const userId = (req as any).userId
+    const userId = (req as any).userId;
+    const data: any = {};
+
+    if (typeof req.body.name === "string") data.name = formatName(req.body.name);
+    if (typeof req.body.email === "string") {
+        const email = normalizeEmail(req.body.email);
+        // checa duplicidade para outro usuário
+        const conflict = await prisma.user.findUnique({where: {email}});
+        if (conflict && conflict.id !== userId) {
+            return res.status(409).json({error: "Email já em uso"});
+        }
+        data.email = email;
+    }
 
     const user = await prisma.user.update({
         where: { id: userId },
-        data: {
-            name: req.body.name,
-            email: req.body.email,
-        },
-    })
+        data,
+        select: {id: true, name: true, email: true, avatar: true, createdAt: true, type: true},
+    });
 
-    res.json(user)
-}
+    res.json(user);
+};
+
+// Atualiza um usuário existente
+export const updateUser = async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const data: any = {};
+
+    if (typeof req.body.name === "string") data.name = formatName(req.body.name);
+    if (typeof req.body.email === "string") {
+        const email = normalizeEmail(req.body.email);
+        const conflict = await prisma.user.findUnique({where: {email}});
+        if (conflict && conflict.id !== id) {
+            return res.status(409).json({error: "Email já em uso"});
+        }
+        data.email = email;
+    }
+    if (typeof req.body.avatar !== "undefined") data.avatar = req.body.avatar;
+    if (typeof req.body.type !== "undefined") data.type = req.body.type;
+
+    const user = await prisma.user.update({
+        where: {id},
+        data,
+        select: {id: true, name: true, email: true, avatar: true, type: true, createdAt: true},
+    });
+
+    await logActivity({
+        userId: user.id,
+        userName: user.name,
+        action: "Atualização de usuário",
+        type: $Enums.ActivityType.user,
+        details: `Usuário "${user.name}" foi atualizado.`,
+    });
+
+    res.json(user);
+};
 
 
 // Deleta as proprias informações
@@ -191,31 +241,6 @@ export const deleteMe = async (req: Request, res: Response) => {
     await prisma.user.delete({ where: { id: userId } })
 
     res.status(204).send()
-}
-
-// Atualiza um usuário existente
-export const updateUser = async (req: Request, res: Response) => {
-    const { name, email, avatar, type } = req.body
-
-    const user = await prisma.user.update({
-        where: { id: req.params.id },
-        data: {
-            name,
-            email,
-            avatar,
-            type,
-        },
-    })
-
-    await logActivity({
-        userId: user.id,
-        userName: user.name,
-        action: "Atualização de usuário",
-        type: $Enums.ActivityType.user,
-        details: `Usuário "${user.name}" foi atualizado.`,
-    })
-
-    res.json(user)
 }
 
 

@@ -1,10 +1,8 @@
-"use client"
-
 import type React from "react"
-import { useEffect, useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { GoalModal } from "../components/goals/GoalModal"
+import {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {GoalModal} from "../components/goals/GoalModal"
 import type {Goal} from "../lib/types.ts";
 import {GoalService} from "../services";
 import {toast} from "sonner";

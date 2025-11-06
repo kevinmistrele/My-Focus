@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import type {Route} from "../../lib/router"
 import type {User} from "../../lib/types"
@@ -134,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
                             <span className="text-lg">🚪</span>
                             <span className="font-medium">Sair</span>
                         </button>
-                        <div className="flex items-center justify-between text-sm text-muted">
+                        <div className="flex items-center justify-center text-sm text-muted">
                             <span>MyFocus {versionData.version}</span>
                         </div>
                     </div>

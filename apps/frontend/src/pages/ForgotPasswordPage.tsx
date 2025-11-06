@@ -1,10 +1,7 @@
-"use client"
-
-import React, {useEffect} from "react"
-import { useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
+import React, {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
 import {AuthService} from "../services";
 import {toast} from "sonner";
 

@@ -1,11 +1,8 @@
-"use client"
-
-import React, {useEffect} from "react"
-import { useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { HabitModal } from "../components/habits/HabitModal"
-import type { Habit } from "../lib/types"
+import React, {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {HabitModal} from "../components/habits/HabitModal"
+import type {Habit} from "../lib/types"
 import {HabitService} from "../services";
 import {toast} from "sonner";
 

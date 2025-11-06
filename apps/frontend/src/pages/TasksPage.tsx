@@ -1,13 +1,10 @@
-"use client"
-
-import React, {useEffect} from "react"
-import { useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
-import { TaskCard } from "../components/tasks/TaskCard"
-import { TaskModal } from "../components/tasks/TaskModal"
-import type { Task } from "../lib/types"
+import React, {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
+import {TaskCard} from "../components/tasks/TaskCard"
+import {TaskModal} from "../components/tasks/TaskModal"
+import type {Task} from "../lib/types"
 import {type TaskPayload, TaskService} from "../services";
 import {toast} from "sonner";
 

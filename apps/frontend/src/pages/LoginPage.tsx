@@ -1,16 +1,13 @@
-"use client"
-
-import React from "react"
-import { useState, useEffect } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
-import { ForgotPasswordPage } from "./ForgotPasswordPage"
-import { ResetPasswordPage } from "./ResetPasswordPage"
-import { AuthService } from "../services"
-import type { User } from "../lib/types"
-import { toast } from "sonner"
-import { Modal } from "../components/ui/Modal"
+import React, {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
+import {ForgotPasswordPage} from "./ForgotPasswordPage"
+import {ResetPasswordPage} from "./ResetPasswordPage"
+import {AuthService} from "../services"
+import type {User} from "../lib/types"
+import {toast} from "sonner"
+import {Modal} from "../components/ui/Modal"
 
 interface LoginPageProps {
     onLogin: (user: User, token: string) => void

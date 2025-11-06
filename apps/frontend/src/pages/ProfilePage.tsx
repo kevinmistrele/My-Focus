@@ -1,13 +1,10 @@
-"use client"
-
 import type React from "react"
-import { useEffect } from "react"
-import { useState } from "react"
-import { Card } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
-import { Input } from "../components/ui/Input"
-import { Modal } from "../components/ui/Modal"
-import { UserService } from "../services"
+import {useEffect, useState} from "react"
+import {Card} from "../components/ui/Card"
+import {Button} from "../components/ui/Button"
+import {Input} from "../components/ui/Input"
+import {Modal} from "../components/ui/Modal"
+import {UserService} from "../services"
 import {toast} from "sonner";
 
 export const ProfilePage: React.FC = () => {
@@ -474,58 +471,70 @@ export const ProfilePage: React.FC = () => {
             <Modal isOpen={showLGPDModal} onClose={() => setShowLGPDModal(false)} title="LGPD - Proteção de Dados" size="lg">
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                     <div className="prose prose-sm text-secondary">
-                        <h3 className="text-primary font-semibold">1. Compromisso com a LGPD</h3>
+                        <h3 className="text-primary font-semibold">1. Controlador e Encarregado (DPO)</h3>
                         <p>
-                            O MyFocus está comprometido com a proteção de dados pessoais em conformidade com a Lei Geral de Proteção
-                            de Dados (LGPD - Lei nº 13.709/2018).
+                            O <strong>MyFocus</strong> é o controlador dos dados pessoais tratados nesta plataforma,
+                            representado por <strong>MyFocus</strong>.
+                        </p>
+                        <p>
+                            O Encarregado de Proteção de Dados (DPO) é <strong>Guilherme Aires</strong>.
+                            Para qualquer solicitação, dúvida ou exercício de direitos relacionados à proteção de dados
+                            pessoais,
+                            entre em contato através do e-mail: <a
+                            href="mailto:myfocus.suporte@gmail.com">myfocus.suporte@gmail.com</a>.
                         </p>
 
-                        <h3 className="text-primary font-semibold">2. Base Legal para Tratamento</h3>
-                        <p>Tratamos seus dados pessoais com base nas seguintes hipóteses legais:</p>
+                        <h3 className="text-primary font-semibold">2. Bases Legais e Finalidades</h3>
+                        <p>O tratamento de dados pessoais no MyFocus ocorre com base nas seguintes hipóteses legais:</p>
                         <ul className="list-disc list-inside ml-4">
-                            <li>Consentimento do titular</li>
-                            <li>Execução de contrato</li>
-                            <li>Legítimo interesse</li>
-                            <li>Cumprimento de obrigação legal</li>
+                            <li>Execução de contrato: para viabilizar o funcionamento da plataforma e suas
+                                funcionalidades.
+                            </li>
+                            <li>Consentimento: quando você opta por fornecer dados adicionais ou receber comunicações.
+                            </li>
+                            <li>Interesse legítimo: para melhoria contínua dos serviços e segurança da aplicação.</li>
+                            <li>Cumprimento de obrigação legal ou regulatória.</li>
                         </ul>
 
-                        <h3 className="text-primary font-semibold">3. Seus Direitos como Titular</h3>
-                        <p>Conforme a LGPD, você possui os seguintes direitos:</p>
+                        <h3 className="text-primary font-semibold">3. Direitos do Titular</h3>
+                        <p>Em conformidade com a LGPD, você possui os seguintes direitos:</p>
                         <ul className="list-disc list-inside ml-4">
-                            <li>Confirmação da existência de tratamento</li>
-                            <li>Acesso aos dados</li>
-                            <li>Correção de dados incompletos, inexatos ou desatualizados</li>
-                            <li>Anonimização, bloqueio ou eliminação de dados</li>
-                            <li>Portabilidade dos dados</li>
-                            <li>Eliminação dos dados tratados com consentimento</li>
-                            <li>Revogação do consentimento</li>
+                            <li>Confirmar a existência de tratamento de dados pessoais;</li>
+                            <li>Solicitar acesso, correção ou exclusão dos seus dados;</li>
+                            <li>Solicitar anonimização, bloqueio ou portabilidade;</li>
+                            <li>Revogar o consentimento a qualquer momento;</li>
+                            <li>Solicitar informações sobre o compartilhamento de dados com terceiros.</li>
                         </ul>
-
-                        <h3 className="text-primary font-semibold">4. Encarregado de Dados</h3>
                         <p>
-                            Nosso Encarregado de Proteção de Dados (DPO) está disponível para esclarecer dúvidas e receber
-                            solicitações relacionadas ao tratamento de dados pessoais.
+                            O prazo de resposta às solicitações é de até <strong>15 dias</strong> corridos, conforme
+                            previsto pela LGPD.
                         </p>
 
-                        <h3 className="text-primary font-semibold">5. Retenção de Dados</h3>
+                        <h3 className="text-primary font-semibold">4. Retenção e Segurança dos Dados</h3>
                         <p>
-                            Mantemos seus dados pessoais apenas pelo tempo necessário para as finalidades informadas, respeitando os
-                            prazos legais de retenção.
+                            Os dados pessoais são mantidos apenas enquanto a conta estiver ativa ou conforme exigido por
+                            lei.
+                            São aplicadas medidas técnicas e organizacionais adequadas para proteger suas informações
+                            contra acessos não autorizados,
+                            perda ou destruição.
                         </p>
 
-                        <h3 className="text-primary font-semibold">6. Transferência Internacional</h3>
+                        <h3 className="text-primary font-semibold">5. Transferência Internacional</h3>
                         <p>
-                            Caso haja transferência internacional de dados, garantimos que será feita apenas para países com nível
-                            adequado de proteção ou mediante garantias apropriadas.
+                            Caso haja transferência internacional de dados, garantimos que será feita apenas para países
+                            com nível adequado de proteção
+                            ou mediante adoção de garantias contratuais apropriadas.
                         </p>
 
-                        <h3 className="text-primary font-semibold">7. Contato</h3>
+                        <h3 className="text-primary font-semibold">6. Contato</h3>
                         <p>
-                            Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados, entre em contato através do
-                            email: myfocus.suporte@gmail.com
+                            Em caso de dúvidas ou solicitações relacionadas ao tratamento de dados pessoais,
+                            envie uma mensagem para: <a
+                            href="mailto:myfocus.suporte@gmail.com">myfocus.suporte@gmail.com</a>.
                         </p>
                     </div>
                 </div>
+
                 <div className="flex justify-end pt-4 border-t border-custom">
                     <Button onClick={() => setShowLGPDModal(false)}>Fechar</Button>
                 </div>
