@@ -14,6 +14,7 @@
     "prod:front": "npm --workspace apps/frontend run prod",
     "prod:back": "npm --workspace apps/backend run prod",
     "prisma:migrate": "npm --workspace apps/backend run migrate",
+    "prisma:studio": "npx prisma studio --schema=apps/backend/src/prisma/schema.prisma",
     "prisma:generate": "npm --workspace apps/backend run generate",
     "setup": "npm install --workspaces && npm run prisma:migrate && npm run prisma:generate"
   },
