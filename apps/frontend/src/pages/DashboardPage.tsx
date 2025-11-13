@@ -147,42 +147,55 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (path: string) => vo
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        {recentTasks.map((task) => (
-                            <div
-                                key={task.id}
-                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-surface-light transition-colors"
-                            >
-                                <div
-                                    className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                        task.completed ? "bg-primary border-primary" : "border-custom-light"
-                                    }`}
-                                >
-                                    {task.completed && (
-                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    )}
-                                </div>
-                                <div className="flex-1">
-                                    <div className={`font-medium ${task.completed ? "line-through text-muted" : "text-primary"}`}>
-                                        {task.title}
-                                    </div>
-                                </div>
-                                <div
-                                    className={`w-2 h-2 rounded-full ${
-                                        task.priority === "high"
-                                            ? "bg-red-500"
-                                            : task.priority === "medium"
-                                                ? "bg-yellow-500"
-                                                : "bg-green-500"
-                                    }`}
-                                />
+                        {recentTasks.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 opacity-70">
+                                <div className="text-6xl mb-3">📝</div>
+                                <h3 className="text-lg font-medium text-secondary mb-1">
+                                    Nenhuma tarefa recente
+                                </h3>
+                                <p className="text-sm text-muted">
+                                    Crie uma nova tarefa para aparecer aqui.
+                                </p>
                             </div>
-                        ))}
+                        ) : (
+                            recentTasks.map((task) => (
+                                <div
+                                    key={task.id}
+                                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-surface-light transition-colors"
+                                >
+                                    <div
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                                            task.completed ? "bg-primary border-primary" : "border-custom-light"
+                                        }`}
+                                    >
+                                        {task.completed && (
+                                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clipRule="evenodd"
+                                                />
+                                            </svg>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div
+                                            className={`font-medium ${task.completed ? "line-through text-muted" : "text-primary"}`}>
+                                            {task.title}
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={`w-2 h-2 rounded-full ${
+                                            task.priority === "high"
+                                                ? "bg-red-500"
+                                                : task.priority === "medium"
+                                                    ? "bg-yellow-500"
+                                                    : "bg-green-500"
+                                        }`}
+                                    />
+                                </div>
+                            ))
+                        )}
                     </div>
                 </Card>
 
@@ -194,35 +207,51 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (path: string) => vo
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        {todayHabits.map((habit) => (
-                            <div
-                                key={habit.id}
-                                className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-light transition-colors"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                            habit.completedToday ? "bg-primary border-primary" : "border-custom-light"
-                                        }`}
-                                    >
-                                        {habit.completedToday && (
-                                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <span className={`font-medium ${habit.completedToday ? "text-muted" : "text-primary"}`}>{habit.name}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-secondary">{habit.streak} dias</span>
-                                    <span className="text-orange-500">🔥</span>
-                                </div>
+                        {todayHabits.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 opacity-70">
+                                <div className="text-6xl mb-3">🎯</div>
+                                <h3 className="text-lg font-medium text-secondary mb-1">
+                                    Nenhum hábito para hoje
+                                </h3>
+                                <p className="text-sm text-muted">
+                                    Crie ou ative um hábito para acompanhar aqui.
+                                </p>
                             </div>
-                        ))}
+                        ) : (
+                            todayHabits.map((habit) => (
+                                <div
+                                    key={habit.id}
+                                    className="flex items-center justify-between p-3 rounded-lg hover:bg-surface-light transition-colors"
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <div
+                                            className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                                                habit.completedToday ? "bg-primary border-primary" : "border-custom-light"
+                                            }`}
+                                        >
+                                            {habit.completedToday && (
+                                                <svg className="w-3 h-3 text-white" fill="currentColor"
+                                                     viewBox="0 0 20 20">
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <span
+                                            className={`font-medium ${habit.completedToday ? "text-muted" : "text-primary"}`}>
+                        {habit.name}
+                    </span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm text-secondary">{habit.streak} dias</span>
+                                        <span className="text-orange-500">🔥</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </Card>
             </div>
