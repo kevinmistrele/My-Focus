@@ -10,6 +10,7 @@ import {toast} from "sonner";
 export const ProfilePage: React.FC = () => {
     const [user, setUser] = useState<any | null>(null)
     const [formData, setFormData] = useState({ name: "", email: "" })
+    const [isExporting, setIsExporting] = useState(false)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "" })
     const [isEditing, setIsEditing] = useState(false)
@@ -84,16 +85,44 @@ export const ProfilePage: React.FC = () => {
     }
 
 
+    const exportUserData = async () => {
+        try {
+            setIsExporting(true)
 
-    const exportUserData = () => {
-        if (!user) return
-        const blob = new Blob([JSON.stringify(user, null, 2)], { type: "application/json" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = "meus-dados.json"
-        link.click()
-        URL.revokeObjectURL(url)
+            const response = await UserService.exportData()
+
+            let blob: Blob
+
+            if (response instanceof Blob) {
+                blob = response
+            } else if (response && response.data instanceof Blob) {
+                blob = response.data
+            } else {
+                // fallback: se por algum motivo vier JSON normal, converte pra Blob
+                blob = new Blob(
+                    [typeof response === "string" ? response : JSON.stringify(response, null, 2)],
+                    {type: "application/json;charset=utf-8"},
+                )
+            }
+
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = url
+            link.download = "myfocus-dados-pessoais.json"
+
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+
+            URL.revokeObjectURL(url)
+
+            toast.success("Dados exportados com sucesso!")
+        } catch (error) {
+            console.error("Erro ao exportar dados:", error)
+            toast.error("Erro ao exportar dados.")
+        } finally {
+            setIsExporting(false)
+        }
     }
 
     if (!user) {
@@ -177,7 +206,7 @@ export const ProfilePage: React.FC = () => {
                                     <h4 className="font-medium text-primary">Exportar Dados</h4>
                                     <p className="text-sm text-secondary">Baixe todos os seus dados em formato JSON</p>
                                 </div>
-                                <Button variant="outline" size="sm" onClick={exportUserData}>
+                                <Button variant="outline" size="sm" onClick={exportUserData} loading={isExporting}>
                                     Exportar
                                 </Button>
                             </div>

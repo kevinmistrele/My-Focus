@@ -17,8 +17,19 @@ const priorityColors = {
     high: "bg-red-500",
 }
 
+const priorityLabels: Record<string, string> = {
+    low: "Baixa",
+    medium: "Média",
+    high: "Alta",
+}
+
 // Componente para exibir um cartão de tarefa
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDelete }) => {
+
+    function getPriorityLabel(priority: string) {
+        return priorityLabels[priority] ?? priority
+    }
+
     return (
         <Card className="hover:shadow-xl transition-shadow duration-200">
             <div className="flex items-start justify-between">
@@ -49,7 +60,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, onEdit, onDe
                         <div className="flex items-center space-x-4 mt-3">
                             <div className="flex items-center space-x-2">
                                 <div className={`w-2 h-2 rounded-full ${priorityColors[task.priority] ?? "bg-gray-400"}`} />
-                                <span className="text-xs text-muted capitalize">{task.priority}</span>
+                                <span className="text-xs text-muted capitalize">{getPriorityLabel(task.priority)}</span>
                             </div>
 
                             {task.dueDate && <span className="text-xs text-muted">{formatDate(new Date(task.dueDate))}</span>}

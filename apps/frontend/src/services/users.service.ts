@@ -59,12 +59,29 @@ export const UserService = {
      */
     deleteCurrent: () => api.delete("/users/me"),
 
+    /**
+     * Atualiza a senha
+     */
+
     changePassword: (data: { currentPassword: string; newPassword: string }) =>
         api.put("/users/me/password", data),
 
+    /**
+     * Estatísticas do usuário
+     */
+
     getStats: async () => {
         return api.get("/users/me/stats");
-    }
+    },
+    /**
+     * 🚀 Exportar dados pessoais
+     */
+
+    exportData: () =>
+        api.get("/users/me/export", {
+            responseType: "blob",
+        }),
+
 
 
 }

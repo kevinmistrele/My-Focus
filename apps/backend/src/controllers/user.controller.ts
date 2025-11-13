@@ -5,6 +5,169 @@ import * as bcrypt from "bcryptjs";
 import {prisma} from "../prisma/client";
 import {formatName, normalizeEmail} from "../utils/normalization";
 
+// Função para mascarar email
+const maskEmailForExport = (email: string): string => {
+    const [local, domain] = email.split("@")
+    if (!domain) return email
+
+    if (local.length <= 2) {
+        return `${local[0] ?? ""}***@${domain}`
+    }
+
+    const visible = local.slice(0, 2) // ex: "ke"
+    const stars = "*".repeat(Math.max(local.length - 2, 3))
+
+    return `${visible}${stars}@${domain}`
+}
+// Exporta todos os dados do usuário autenticado
+
+// No topo do arquivo, junto com os outros exports
+export const exportMyData = async (req: Request, res: Response) => {
+    const userId = (req as any).userId
+
+    if (!userId) {
+        return res.status(401).json({error: "Não autenticado"})
+    }
+
+    const user = await prisma.user.findUnique({
+        where: {id: userId},
+        select: {
+            // Perfil básico
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            type: true,
+            createdAt: true,
+            lastLogin: true,
+            loginStreak: true,
+            lastStreakDate: true,
+            tasks: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    completed: true,
+                    priority: true,
+                    dueDate: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    tags: true,
+                    pomodoros: true,
+                },
+            },
+            sessions: {
+                select: {
+                    id: true,
+                    duration: true,
+                    type: true,
+                    startTime: true,
+                    endTime: true,
+                    completed: true,
+                },
+            },
+            goals: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    type: true,
+                    category: true,
+                    targetDate: true,
+                    progress: true,
+                    completed: true,
+                    createdAt: true,
+                },
+            },
+            habits: {
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    category: true,
+                    streak: true,
+                    bestStreak: true,
+                    weeklyGoal: true,
+                    weeklyProgress: true,
+                    color: true,
+                    createdAt: true,
+                    checkins: {
+                        select: {
+                            id: true,
+                            date: true,
+                        },
+                    },
+                },
+            },
+            moods: {
+                select: {
+                    id: true,
+                    mood: true,
+                    note: true,
+                    date: true,
+                },
+            },
+            quotes: {
+                select: {
+                    id: true,
+                    text: true,
+                    author: true,
+                    createdAt: true,
+                },
+            },
+            notes: {
+                select: {
+                    id: true,
+                    title: true,
+                    content: true,
+                    color: true,
+                    pinned: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            },
+        },
+    })
+
+    if (!user) {
+        return res.status(404).json({error: "Usuário não encontrado"})
+    }
+
+    const payload = {
+        metadata: {
+            generatedAt: new Date().toISOString(),
+            application: "MyFocus",
+        },
+        profile: {
+            id: user.id,
+            name: user.name,
+            email: maskEmailForExport(user.email),
+            avatar: user.avatar,
+            type: user.type,
+            createdAt: user.createdAt,
+            lastLogin: user.lastLogin,
+            loginStreak: user.loginStreak,
+            lastStreakDate: user.lastStreakDate,
+        },
+        data: {
+            tasks: user.tasks,
+            pomodoroSessions: user.sessions,
+            goals: user.goals,
+            habits: user.habits,
+            moods: user.moods,
+            quotes: user.quotes,
+            notes: user.notes,
+        },
+    }
+
+    res.setHeader("Content-Type", "application/json; charset=utf-8")
+    res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="myfocus-dados-pessoais.json"',
+    )
+
+    return res.status(200).send(JSON.stringify(payload, null, 2))
+}
 
 // Pega Todos os usuários do sistema
 
