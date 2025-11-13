@@ -47,7 +47,16 @@ export const AdminUsersPage: React.FC = () => {
         return searchMatch && typeMatch
     })
 
+    const maskEmail = (email: string) => {
+        const [localPart, domain] = email.split("@")
+        if (!localPart || !domain) return email
 
+        // mantém só os 2 primeiros caracteres e o resto vira *
+        const visible = localPart.slice(0, 2)
+        const masked = "*".repeat(Math.max(localPart.length - 2, 0))
+
+        return `${visible}${masked}@${domain}`
+    }
 
     const fetchUsers = async (page = 1) => {
         try {
@@ -143,16 +152,22 @@ export const AdminUsersPage: React.FC = () => {
         if (!editingUser) return
 
         try {
-            const res = await UserService.update(editingUser.id, editingUser)
+            // só o que pode ser alterado
+            const payload = {
+                name: editingUser.name,
+                type: editingUser.type,
+            }
 
-            // Se o serviço retorna só os dados, não cheque res.status
+            const res = await UserService.update(editingUser.id, payload)
+
             if (!res) {
                 toast.error("Erro ao editar usuário.")
                 return
             }
 
             const updated: User = {
-                ...res,
+                ...editingUser,          // mantém email atual
+                ...res,                  // atualiza campos vindos da API
                 createdAt: new Date(res.createdAt),
                 lastLogin: res.lastLogin ? new Date(res.lastLogin) : null,
             }
@@ -164,7 +179,6 @@ export const AdminUsersPage: React.FC = () => {
             setSelectedUser(null)
 
             toast.success("Usuário atualizado com sucesso!")
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error("Erro ao editar usuário.")
         }
@@ -277,7 +291,7 @@ export const AdminUsersPage: React.FC = () => {
                                             <span className="font-medium text-primary">{user.name}</span>
                                         </div>
                                     </td>
-                                    <td className="py-3 px-4 text-secondary">{user.email}</td>
+                                    <td className="py-3 px-4 text-secondary">{maskEmail(user.email)}</td>
                                     <td className="py-3 px-4">
           <span className={`px-2 py-1 rounded-full text-xs ${getUserTypeColor(user.type)}`}>
             {getUserTypeLabel(user.type)}
@@ -391,7 +405,6 @@ export const AdminUsersPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold text-primary">{selectedUser.name}</h3>
-                                    <p className="text-secondary">{selectedUser.email}</p>
                                     <span className={`px-2 py-1 rounded-full text-xs ${getUserTypeColor(selectedUser.type)}`}>
                     {getUserTypeLabel(selectedUser.type)}
                   </span>
@@ -435,15 +448,6 @@ export const AdminUsersPage: React.FC = () => {
                             placeholder="Digite o nome do usuário"
                             value={editingUser.name}
                             onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                            required
-                        />
-
-                        <Input
-                            label="Email"
-                            type="email"
-                            placeholder="Digite o email do usuário"
-                            value={editingUser.email}
-                            onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                             required
                         />
 
