@@ -18,12 +18,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
     // Itens do menu de navegação
     const menuItems = [
         { path: "/dashboard", label: "Dashboard", icon: "📊" },
+        {path: "/pomodoro", label: "Pomodoro", icon: "⏰"},
         { path: "/tasks", label: "Tarefas", icon: "✅" },
         { path: "/goals", label: "Metas", icon: "🎯" },
         { path: "/mood", label: "Registro de Humor", icon: "😊" },
         { path: "/quotes", label: "Frases Motivacionais", icon: "💭" },
         { path: "/habits", label: "Hábitos", icon: "🔄" },
-        { path: "/pomodoro", label: "Pomodoro", icon: "⏰" },
         { path: "/notes", label: "Notas", icon: "📝" },
     ]
 
