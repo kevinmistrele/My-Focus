@@ -2,19 +2,19 @@ import type React from "react"
 import {useEffect, useState} from "react"
 import {Card} from "../../components/ui/Card"
 import {Button} from "../../components/ui/Button"
-import {Input} from "../../components/ui/Input"
 import type {ActivityLog} from "../../lib/types"
-import {LogsService} from "../../services";
+import {LogsService} from "../../services"
+
+type LogFilter = "all" | "user" | "task" | "pomodoro" | "system"
 
 export const AdminLogsPage: React.FC = () => {
     const [logs, setLogs] = useState<ActivityLog[]>([])
     const [filteredLogs, setFilteredLogs] = useState<ActivityLog[]>([])
-    const [filter, setFilter] = useState<"all" | "user" | "task" | "pomodoro" | "system">("all")
-    const [searchTerm, setSearchTerm] = useState("")
+    const [filter, setFilter] = useState<LogFilter>("all")
     const [isLoading, setIsLoading] = useState(true)
-    const [limit,] = useState(10)
-    const [page, setPage] = useState(1)
-    const [, setHasMore] = useState(true)
+    const [limit] = useState(10)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
     const [totalLogs, setTotalLogs] = useState(0)
 
     const [logCountsByType, setLogCountsByType] = useState({
@@ -24,17 +24,24 @@ export const AdminLogsPage: React.FC = () => {
         system: 0,
     })
 
+    const fetchLogs = async (page = 1, currentFilter: LogFilter = "all") => {
+        setIsLoading(true)
 
-
-    const fetchLogs = async (currentPage = 1) => {
         try {
-            const response = await LogsService.getAll({ page: currentPage, limit })
-            const { data, total, totalByType  } = response
+            const res = await LogsService.getAll({
+                page,
+                limit,
+                // manda o type só se não for "all"
+                type: currentFilter === "all" ? undefined : currentFilter,
+            })
+
+            const {data, totalPages, total, totalByType} = res
+
+            setTotalPages(totalPages)
             setTotalLogs(total)
-            if (totalByType) setLogCountsByType(totalByType)
+            setLogCountsByType(totalByType)
 
-
-            const mappedLogs = data.map((log: any) => ({
+            const mapped: ActivityLog[] = data.map((log: any) => ({
                 id: log.id,
                 userId: log.userId,
                 userName: log.userName || "Desconhecido",
@@ -44,41 +51,18 @@ export const AdminLogsPage: React.FC = () => {
                 type: log.type || "user",
             }))
 
-            setLogs((prev) => {
-                const prevIds = new Set(prev.map((l) => l.id))
-                const newUniqueLogs = mappedLogs.filter((l: ActivityLog) => !prevIds.has(l.id))
-                const combined = [...prev, ...newUniqueLogs]
-                setHasMore(combined.length < total)
-                return combined
-            })
-
-            setHasMore(logs.length + mappedLogs.length < total)
+            setLogs(mapped)
+            setFilteredLogs(mapped) // agora os "logs filtrados" já vêm do backend
         } finally {
             setIsLoading(false)
         }
     }
 
+    // sempre que página ou filtro mudar, busca de novo
     useEffect(() => {
-        fetchLogs(1)
-    }, [])
-
-    useEffect(() => {
-        let filtered = logs
-
-        if (filter !== "all") {
-            filtered = filtered.filter((log) => log.type === filter)
-        }
-
-        if (searchTerm.trim()) {
-            filtered = filtered.filter((log) =>
-                log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                log.details.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        }
-
-        setFilteredLogs(filtered)
-    }, [logs, filter, searchTerm])
+        fetchLogs(currentPage, filter)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, filter])
 
     const getLogIcon = (type: string) => {
         switch (type) {
@@ -127,7 +111,9 @@ export const AdminLogsPage: React.FC = () => {
 
     const formatTimeAgo = (timestamp: Date) => {
         const now = new Date()
-        const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60))
+        const diffInMinutes = Math.floor(
+            (now.getTime() - timestamp.getTime()) / (1000 * 60),
+        )
 
         if (diffInMinutes < 1) return "Agora mesmo"
         if (diffInMinutes < 60) return `${diffInMinutes} min atrás`
@@ -135,45 +121,24 @@ export const AdminLogsPage: React.FC = () => {
         return timestamp.toLocaleDateString("pt-BR")
     }
 
-    const exportLogs = () => {
-        const csvContent = [
-            ["Data/Hora", "Usuário", "Ação", "Detalhes", "Tipo"],
-            ...filteredLogs.map((log) => [
-                log.timestamp.toLocaleString("pt-BR"),
-                log.userName,
-                log.action,
-                log.details,
-                log.type,
-            ]),
-        ]
-            .map((row) => row.map((field) => `"${field}"`).join(","))
-            .join("\n")
-
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-        const link = document.createElement("a")
-        const url = URL.createObjectURL(blob)
-        link.setAttribute("href", url)
-        link.setAttribute("download", `logs_${new Date().toISOString().split("T")[0]}.csv`)
-        link.style.visibility = "hidden"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-    }
-
     if (isLoading) {
         return (
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-primary">Logs de Atividade</h1>
-                        <p className="text-secondary mt-1">Histórico de ações do sistema</p>
+                        <h1 className="text-3xl font-bold text-primary">
+                            Logs de Atividade
+                        </h1>
+                        <p className="text-secondary mt-1">
+                            Histórico de ações do sistema
+                        </p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {[...Array(10)].map((_, i) => (
                         <Card key={i} className="animate-pulse">
-                            <div className="h-16 bg-surface-light rounded"></div>
+                            <div className="h-16 bg-surface-light rounded"/>
                         </Card>
                     ))}
                 </div>
@@ -183,25 +148,17 @@ export const AdminLogsPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-primary">Logs de Atividade</h1>
-                    <p className="text-secondary mt-1">Histórico de ações do sistema</p>
+                    <p className="text-secondary mt-1">
+                        Histórico de ações do sistema
+                    </p>
                 </div>
-                <Button onClick={exportLogs} variant="outline" className="bg-transparent">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                    </svg>
-                    Exportar CSV
-                </Button>
             </div>
 
-            {/* Stats */}
+            {/* Stats gerais (globais) */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Card padding="sm">
                     <div className="text-center">
@@ -211,56 +168,51 @@ export const AdminLogsPage: React.FC = () => {
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-500">{logCountsByType.user}</div>
+                        <div className="text-2xl font-bold text-blue-500">
+                            {logCountsByType.user}
+                        </div>
                         <div className="text-sm text-secondary">Usuário</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-green-500">{logCountsByType.task}</div>
+                        <div className="text-2xl font-bold text-green-500">
+                            {logCountsByType.task}
+                        </div>
                         <div className="text-sm text-secondary">Tarefas</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-500">{logCountsByType.pomodoro}</div>
+                        <div className="text-2xl font-bold text-purple-500">
+                            {logCountsByType.pomodoro}
+                        </div>
                         <div className="text-sm text-secondary">Pomodoro</div>
                     </div>
                 </Card>
                 <Card padding="sm">
                     <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-500">{logCountsByType.system}</div>
+                        <div className="text-2xl font-bold text-orange-500">
+                            {logCountsByType.system}
+                        </div>
                         <div className="text-sm text-secondary">Sistema</div>
                     </div>
                 </Card>
             </div>
 
-            {/* Filters */}
+            {/* Filtros (sem busca) */}
             <Card>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <Input
-                        placeholder="Buscar logs..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="flex-1"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
-                            </svg>
-                        }
-                    />
-                    <div className="flex space-x-2 flex-wrap">
-                        {(["all", "user", "task", "pomodoro", "system"] as const).map((filterType) => (
+                <div className="flex flex-wrap gap-2">
+                    {(["all", "user", "task", "pomodoro", "system"] as const).map(
+                        (filterType) => (
                             <Button
                                 key={filterType}
                                 variant={filter === filterType ? "primary" : "ghost"}
                                 size="sm"
-                                onClick={() => setFilter(filterType)}
+                                onClick={() => {
+                                    setCurrentPage(1) // sempre volta pra primeira página ao trocar filtro
+                                    setFilter(filterType)
+                                }}
                             >
                                 {filterType === "all"
                                     ? "Todos"
@@ -272,21 +224,29 @@ export const AdminLogsPage: React.FC = () => {
                                                 ? "Pomodoro"
                                                 : "Sistema"}
                             </Button>
-                        ))}
-                    </div>
+                        ),
+                    )}
                 </div>
             </Card>
 
-            {/* Logs List */}
+            {/* Lista de logs */}
             <div className="space-y-3">
                 {filteredLogs.map((log) => (
                     <Card key={log.id} className="hover:shadow-lg transition-shadow">
                         <div className="flex items-start space-x-4">
-                            <div className={`text-2xl ${getLogColor(log.type)} mt-1`}>{getLogIcon(log.type)}</div>
+                            <div className={`text-2xl ${getLogColor(log.type)} mt-1`}>
+                                {getLogIcon(log.type)}
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center space-x-3 mb-2">
-                                    <h3 className="font-medium text-primary truncate">{log.userName}</h3>
-                                    <span className={`px-2 py-1 rounded-full text-xs ${getLogBadgeColor(log.type)}`}>
+                                    <h3 className="font-medium text-primary truncate">
+                                        {log.userName}
+                                    </h3>
+                                    <span
+                                        className={`px-2 py-1 rounded-full text-xs ${getLogBadgeColor(
+                                            log.type,
+                                        )}`}
+                                    >
                     {log.type === "user"
                         ? "Usuário"
                         : log.type === "task"
@@ -300,8 +260,12 @@ export const AdminLogsPage: React.FC = () => {
                                 <p className="text-muted text-xs">{log.details}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-muted text-xs">{formatTimeAgo(log.timestamp)}</p>
-                                <p className="text-muted text-xs">{log.timestamp.toLocaleTimeString("pt-BR")}</p>
+                                <p className="text-muted text-xs">
+                                    {formatTimeAgo(log.timestamp)}
+                                </p>
+                                <p className="text-muted text-xs">
+                                    {log.timestamp.toLocaleTimeString("pt-BR")}
+                                </p>
                             </div>
                         </div>
                     </Card>
@@ -312,25 +276,37 @@ export const AdminLogsPage: React.FC = () => {
                 <Card>
                     <div className="text-center py-12">
                         <div className="text-6xl mb-4">📋</div>
-                        <h3 className="text-lg font-medium text-secondary mb-2">Nenhum log encontrado</h3>
-                        <p className="text-muted">Tente ajustar os filtros ou termos de busca</p>
+                        <h3 className="text-lg font-medium text-secondary mb-2">
+                            Nenhum log encontrado
+                        </h3>
+                        <p className="text-muted">
+                            Tente ajustar o filtro selecionado
+                        </p>
                     </div>
                 </Card>
             )}
 
-            {/* Load More */}
+            {/* Paginação */}
             {filteredLogs.length > 0 && (
-                <div className="text-center">
+                <div className="flex justify-center mt-6 space-x-2">
                     <Button
-                        variant="outline"
-                        className="bg-transparent"
-                        onClick={() => {
-                            const nextPage = page + 1
-                            setPage(nextPage)
-                            fetchLogs(nextPage)
-                        }}
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     >
-                        Carregar mais logs
+                        Anterior
+                    </Button>
+
+                    <span className="text-primary px-4 pt-2">
+            Página {currentPage} de {totalPages}
+          </span>
+
+                    <Button
+                        disabled={currentPage === totalPages}
+                        onClick={() =>
+                            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                        }
+                    >
+                        Próxima
                     </Button>
                 </div>
             )}
