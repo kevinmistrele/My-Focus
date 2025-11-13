@@ -4,6 +4,7 @@ import {
     createUser,
     deleteMe,
     deleteUser,
+    exportMyData,
     getAllUsers,
     getMe,
     getUserById,
@@ -22,6 +23,7 @@ router.use(verifyToken);
 router.get("/me", getMe)
 router.put("/me", updateMe)
 router.delete("/me", deleteMe)
+router.get("/me/export", exportMyData)
 router.put("/me/password", changePassword);
 router.get("/me/stats", requireUser, getUserStats);
 
