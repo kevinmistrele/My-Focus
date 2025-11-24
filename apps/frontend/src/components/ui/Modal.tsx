@@ -1,5 +1,6 @@
 import type React from "react"
 import {useEffect} from "react"
+import ReactDOM from "react-dom"
 import {cn} from "../../lib/utils"
 
 interface ModalProps {
@@ -17,7 +18,13 @@ const modalSizes = {
     xl: "max-w-4xl",
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = "md" }) => {
+export const Modal: React.FC<ModalProps> = ({
+                                                isOpen,
+                                                onClose,
+                                                title,
+                                                children,
+                                                size = "md",
+                                            }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden"
@@ -32,9 +39,15 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
     if (!isOpen) return null
 
-    return (
+    const content = (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose} />
+            {/* Backdrop cobrindo a tela toda */}
+            <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Caixa do modal */}
             <div
                 className={cn(
                     "relative w-full mx-4 bg-surface border border-custom-light rounded-xl shadow-2xl animate-fade-in",
@@ -44,9 +57,22 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                 {title && (
                     <div className="flex items-center justify-between p-6 border-b border-custom">
                         <h2 className="text-xl font-semibold text-primary">{title}</h2>
-                        <button onClick={onClose} className="text-muted hover:text-primary transition-colors">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <button
+                            onClick={onClose}
+                            className="text-muted hover:text-primary transition-colors"
+                        >
+                            <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
                             </svg>
                         </button>
                     </div>
@@ -55,4 +81,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             </div>
         </div>
     )
+
+    // 🔥 Aqui é o segredo: renderiza no body
+    return ReactDOM.createPortal(content, document.body)
 }
