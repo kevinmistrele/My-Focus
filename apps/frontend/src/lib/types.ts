@@ -40,7 +40,7 @@ export interface AdminStats {
     tasksCompletedToday: number
     averageFocusTime: number
     engagementRate: number
-    recentActivity: Activity[] // 👈 adicionar isso
+    recentActivity: Activity[]
 }
 
 export interface Activity {
