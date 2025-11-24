@@ -8,7 +8,7 @@ import {LogsService} from "../../services"
 type LogFilter = "all" | "user" | "task" | "pomodoro" | "system"
 
 export const AdminLogsPage: React.FC = () => {
-    const [logs, setLogs] = useState<ActivityLog[]>([])
+    const [, setLogs] = useState<ActivityLog[]>([])
     const [filteredLogs, setFilteredLogs] = useState<ActivityLog[]>([])
     const [filter, setFilter] = useState<LogFilter>("all")
     const [isLoading, setIsLoading] = useState(true)
