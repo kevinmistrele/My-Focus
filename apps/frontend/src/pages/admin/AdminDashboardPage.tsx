@@ -209,7 +209,6 @@ export const AdminDashboardPage: React.FC<{ onNavigate: (path: string) => void }
                         <div>
                             <p className="text-sm text-secondary">Taxa de Engajamento</p>
                             <p className="text-3xl font-bold text-primary">{stats.engagementRate}%</p>
-                            <p className="text-sm text-green-500 mt-1">+5% vs mês anterior</p>
                         </div>
                         <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
                             <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +243,13 @@ export const AdminDashboardPage: React.FC<{ onNavigate: (path: string) => void }
             <Card>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-primary">Atividade Recente</h2>
-                    <button className="text-sm text-primary hover:text-primary-dark transition-colors">Ver todos os logs</button>
+                    <button
+                        type="button"
+                        onClick={() => onNavigate("/admin/logs")}
+                        className="text-sm text-primary hover:text-primary-dark transition-colors"
+                    >
+                        Ver todos os logs
+                    </button>
                 </div>
 
                 <div className="space-y-4">
