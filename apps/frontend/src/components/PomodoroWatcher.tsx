@@ -33,7 +33,7 @@ export function PomodoroWatcher() {
                         startTime: startDate,
                     })
                 } catch {
-                    // silencioso — você pode logar se quiser
+                    // silencioso
                 }
 
                 if (typeof Notification !== "undefined" && Notification.permission === "granted") {
