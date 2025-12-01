@@ -64,6 +64,30 @@ export const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, onSave, g
         }
     }, [formData.type]);
 
+    useEffect(() => {
+        if (!isOpen) return;
+
+        if (goal) {
+            // modo edição – preenche com os dados da meta
+            setFormData({
+                title: goal.title,
+                description: goal.description || "",
+                type: goal.type,
+                category: goal.category || "",
+                targetDate: goal.targetDate ? toInputDate(goal.targetDate) : "",
+            })
+        } else {
+            // modo criação – limpa o formulário
+            setFormData({
+                title: "",
+                description: "",
+                type: "short",
+                category: "",
+                targetDate: "",
+            })
+        }
+    }, [goal, isOpen])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
