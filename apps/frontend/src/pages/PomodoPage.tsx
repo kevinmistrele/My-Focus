@@ -320,11 +320,6 @@ export const PomodoroPage: React.FC = () => {
                                     <div className="w-2 h-2 bg-green-500 rounded-full" />
                                     <div>
                                         <div className="text-sm font-medium text-primary">{session.duration} minutos</div>
-                                        <div className="text-xs text-muted">
-                                            {session.startTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}{" "}
-                                            -{" "}
-                                            {session.endTime.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-xs text-secondary">
