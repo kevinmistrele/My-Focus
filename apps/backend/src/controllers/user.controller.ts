@@ -398,13 +398,23 @@ export const updateUser = async (req: Request, res: Response) => {
 
 // Deleta as proprias informações
 export const deleteMe = async (req: Request, res: Response) => {
-    const userId = (req as any).userId
+    const userId = (req as any).userId;
 
-    await prisma.activityLog.deleteMany({ where: { userId } })
-    await prisma.user.delete({ where: { id: userId } })
+    await prisma.pomodoroSession.deleteMany({ where: { userId } });
+    await prisma.task.deleteMany({ where: { userId } });
+    await prisma.goal.deleteMany({ where: { userId } });
+    await prisma.habitCheckin.deleteMany({ where: { userId } });
+    await prisma.habit.deleteMany({ where: { userId } });
+    await prisma.moodLog.deleteMany({ where: { userId } });
+    await prisma.quote.deleteMany({ where: { userId } });
+    await prisma.note.deleteMany({ where: { userId } });
 
-    res.status(204).send()
-}
+    await prisma.activityLog.deleteMany({ where: { userId } });
+
+    await prisma.user.delete({ where: { id: userId } });
+
+    return res.status(204).send();
+};
 
 
 // Atualiza a senha do usuário
@@ -441,7 +451,6 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
-
     await logActivity({
         userId: user.id,
         userName: user.name,
@@ -450,11 +459,20 @@ export const deleteUser = async (req: Request, res: Response) => {
         details: `Usuário "${user.name}" foi excluído.`,
     });
 
+    // 👇 LIMPA TUDO QUE DEPENDE DO USER ANTES
+    await prisma.pomodoroSession.deleteMany({ where: { userId } });
+    await prisma.task.deleteMany({ where: { userId } });
+    await prisma.goal.deleteMany({ where: { userId } });
+    await prisma.habitCheckin.deleteMany({ where: { userId } });
+    await prisma.habit.deleteMany({ where: { userId } });
+    await prisma.moodLog.deleteMany({ where: { userId } });
+    await prisma.quote.deleteMany({ where: { userId } });
+    await prisma.note.deleteMany({ where: { userId } });
 
     await prisma.activityLog.deleteMany({ where: { userId } });
 
     await prisma.user.delete({ where: { id: userId } });
 
-    res.status(204).send();
+    return res.status(204).send();
 };
 
