@@ -129,11 +129,24 @@ export const AdminUsersPage: React.FC = () => {
             onConfirm: async () => {
                 try {
                     await UserService.delete(user.id)
+
                     setUsers((prev) => prev.filter((u) => u.id !== user.id))
+
+                    setEditingUser((prev) => (prev?.id === user.id ? null : prev))
+                    setSelectedUser((prev) => (prev?.id === user.id ? null : prev))
+                    setIsEditModalOpen(false)
+                    setIsViewModalOpen(false)
+
+                    toast.success("Usuário excluído com sucesso!")
                 } catch (err) {
                     console.error("Erro ao excluir usuário:", err)
+                    toast.error("Erro ao excluir usuário.")
                 } finally {
-                    setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                    setConfirmModal((prev) => ({
+                        ...prev,
+                        isOpen: false,
+                        onConfirm: () => {},
+                    }))
                 }
             },
         })
