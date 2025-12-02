@@ -25,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, currentPath, onNavigat
         { path: "/quotes", label: "Frases Motivacionais", icon: "💭" },
         { path: "/habits", label: "Hábitos", icon: "🔄" },
         { path: "/notes", label: "Notas", icon: "📝" },
+        {path: "/news", label: "Notícias", icon: "📰"},
     ]
 
 
