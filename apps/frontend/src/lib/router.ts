@@ -5,6 +5,7 @@ export type Route =
     | "/goals"
     | "/habits"
     | "/notes"
+    | "/news"
     | "/quotes"
     | "/mood"
     | "/profile"
