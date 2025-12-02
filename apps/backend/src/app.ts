@@ -16,12 +16,16 @@ import adminRoutes from "./routes/admin.routes";
 import moodRoutes from "./routes/mood.routes";
 import quoteRoutes from "./routes/quotes.routes";
 import notesRoutes from "./routes/notes.routes";
+import {setupSwagger} from "./utils/swagger";
 
 dotenv.config();
 // Inicializa o aplicativo Express e configura o middleware necessário e as rotas
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+setupSwagger(app)
+
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/pomodoros", pomodoroRoutes);
