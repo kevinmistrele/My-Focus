@@ -449,7 +449,19 @@ export const deleteUser = async (req: Request, res: Response) => {
         where: { id: userId },
     });
 
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    if (!user) {
+        return res.status(404).json({error: "Usuário não encontrado"});
+    }
+
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    });
+
+    if (user.type === "admin" && adminCount <= 1) {
+        return res
+            .status(400)
+            .json({error: "Não é possível excluir o último administrador do sistema."});
+    }
 
     await logActivity({
         userId: user.id,
