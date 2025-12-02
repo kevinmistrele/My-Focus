@@ -298,7 +298,20 @@ export const getMe = async (req: Request, res: Response) => {
     })
 
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" })
-    return res.json(user)
+
+    // conta quantos admins existem
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    })
+
+    const isAdmin = user.type === "admin"
+    const isLastAdmin = isAdmin && adminCount <= 1
+
+    return res.json({
+        ...user,
+        isAdmin,
+        isLastAdmin,
+    })
 }
 
 

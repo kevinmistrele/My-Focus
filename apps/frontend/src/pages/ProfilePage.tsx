@@ -69,7 +69,7 @@ export const ProfilePage: React.FC = () => {
     }
 
 
-
+    ''
     const handleDeleteAccount = async () => {
         setIsLoadingDelete(true)
         try {
@@ -77,12 +77,17 @@ export const ProfilePage: React.FC = () => {
             toast.success("Conta excluída com sucesso.")
             setShowDeleteModal(false)
             window.location.href = "/login"
-        } catch {
-            toast.error("Erro ao excluir conta.")
+        } catch (err: any) {
+            const message =
+                err?.response?.data?.error ||
+                "Erro ao excluir conta."
+
+            toast.error(message)
         } finally {
             setIsLoadingDelete(false)
         }
     }
+
 
 
     const exportUserData = async () => {
@@ -221,15 +226,18 @@ export const ProfilePage: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                <div>
-                                    <h4 className="font-medium text-red-400">Excluir Conta</h4>
-                                    <p className="text-sm text-red-300">Esta ação não pode ser desfeita</p>
+                            {!(user.type === "admin" && user.isLastAdmin) && (
+                                <div
+                                    className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                    <div>
+                                        <h4 className="font-medium text-red-400">Excluir Conta</h4>
+                                        <p className="text-sm text-red-300">Esta ação não pode ser desfeita</p>
+                                    </div>
+                                    <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
+                                        Excluir
+                                    </Button>
                                 </div>
-                                <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
-                                    Excluir
-                                </Button>
-                            </div>
+                            )}
                         </div>
                     </Card>
 
