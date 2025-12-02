@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
 import {prisma} from "../prisma/client";
-import {$Enums} from "prisma-client-1d6036527485651c028a613ad88151fe800296b65b0bd90fe86800d2da228bc8";
+import {$Enums} from "@prisma/client";
 import ActivityType = $Enums.ActivityType;
 
 const maskEmailInText = (text: string): string => {
