@@ -400,6 +400,24 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteMe = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
+    const user = await prisma.user.findUnique({
+        where: {id: userId},
+    });
+
+    if (!user) {
+        return res.status(404).json({error: "Usuário não encontrado"});
+    }
+
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    });
+
+    if (user.type === "admin" && adminCount <= 1) {
+        return res
+            .status(400)
+            .json({error: "Você é o último administrador do sistema e não pode excluir sua própria conta."});
+    }
+
     await prisma.pomodoroSession.deleteMany({ where: { userId } });
     await prisma.task.deleteMany({ where: { userId } });
     await prisma.goal.deleteMany({ where: { userId } });
