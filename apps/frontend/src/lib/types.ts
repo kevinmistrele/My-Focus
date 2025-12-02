@@ -128,6 +128,23 @@ export interface RawGoal {
     createdAt: string
 }
 
+export interface NewsArticle {
+    title: string
+    description: string | null
+    url: string
+    imageUrl?: string | null
+    publishedAt?: string
+    source?: string | null
+}
+
+export interface GetNewsResponse {
+    total: number
+    page: number
+    pageSize: number
+    articles: NewsArticle[]
+}
+
+
 export const mapGoal = (raw: RawGoal): Goal => ({
     ...raw,
     createdAt: new Date(raw.createdAt),

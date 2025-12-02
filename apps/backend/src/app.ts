@@ -16,6 +16,7 @@ import adminRoutes from "./routes/admin.routes";
 import moodRoutes from "./routes/mood.routes";
 import quoteRoutes from "./routes/quotes.routes";
 import notesRoutes from "./routes/notes.routes";
+import newsRoutes from "./routes/news.routes";
 import {setupSwagger} from "./utils/swagger";
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use("/moods", moodRoutes);
 app.use("/activities", activityRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes)
+app.use("/news", newsRoutes)
 
 app.get("/healthz", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });

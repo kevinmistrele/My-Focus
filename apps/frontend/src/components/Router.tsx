@@ -13,6 +13,7 @@ import type {Route} from "../lib/router"
 import type {User} from "../lib/types"
 import {QuotesPage} from "../pages/QuotesPage.tsx";
 import {MoodPage} from "../pages/MoodPage.tsx";
+import {NewsPage} from "../pages/NewsPage.tsx";
 
 interface RouterProps {
     currentPath: Route
@@ -43,6 +44,8 @@ export const Router: React.FC<RouterProps> = ({ currentPath, onNavigate, user })
                 return <MoodPage />
             case "/notes":
                 return <NotesPage />
+            case "/news":
+                return <NewsPage/>
             case "/profile":
                 return <ProfilePage />
             case "/admin/dashboard":
