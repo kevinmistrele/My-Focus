@@ -298,7 +298,20 @@ export const getMe = async (req: Request, res: Response) => {
     })
 
     if (!user) return res.status(404).json({ error: "Usuário não encontrado" })
-    return res.json(user)
+
+    // conta quantos admins existem
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    })
+
+    const isAdmin = user.type === "admin"
+    const isLastAdmin = isAdmin && adminCount <= 1
+
+    return res.json({
+        ...user,
+        isAdmin,
+        isLastAdmin,
+    })
 }
 
 
@@ -400,6 +413,24 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteMe = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
+    const user = await prisma.user.findUnique({
+        where: {id: userId},
+    });
+
+    if (!user) {
+        return res.status(404).json({error: "Usuário não encontrado"});
+    }
+
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    });
+
+    if (user.type === "admin" && adminCount <= 1) {
+        return res
+            .status(400)
+            .json({error: "Você é o último administrador do sistema e não pode excluir sua própria conta."});
+    }
+
     await prisma.pomodoroSession.deleteMany({ where: { userId } });
     await prisma.task.deleteMany({ where: { userId } });
     await prisma.goal.deleteMany({ where: { userId } });
@@ -449,7 +480,19 @@ export const deleteUser = async (req: Request, res: Response) => {
         where: { id: userId },
     });
 
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    if (!user) {
+        return res.status(404).json({error: "Usuário não encontrado"});
+    }
+
+    const adminCount = await prisma.user.count({
+        where: {type: "admin"},
+    });
+
+    if (user.type === "admin" && adminCount <= 1) {
+        return res
+            .status(400)
+            .json({error: "Não é possível excluir o último administrador do sistema."});
+    }
 
     await logActivity({
         userId: user.id,

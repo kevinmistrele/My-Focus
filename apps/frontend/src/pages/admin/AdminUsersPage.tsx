@@ -47,6 +47,9 @@ export const AdminUsersPage: React.FC = () => {
         return searchMatch && typeMatch
     })
 
+    const adminCount = users.filter((u) => u.type === "admin").length;
+
+
     const maskEmail = (email: string) => {
         const [localPart, domain] = email.split("@")
         if (!localPart || !domain) return email
@@ -138,9 +141,16 @@ export const AdminUsersPage: React.FC = () => {
                     setIsViewModalOpen(false)
 
                     toast.success("Usuário excluído com sucesso!")
-                } catch (err) {
-                    console.error("Erro ao excluir usuário:", err)
-                    toast.error("Erro ao excluir usuário.")
+                } catch (err: any) {
+                    console.error("Erro ao excluir usuário:", err);
+
+                    const message =
+                        err?.response?.data?.error ||
+                        (err?.response?.status === 400
+                            ? "Não é possível excluir este usuário."
+                            : "Erro ao excluir usuário.");
+
+                    toast.error(message);
                 } finally {
                     setConfirmModal((prev) => ({
                         ...prev,
@@ -454,31 +464,27 @@ export const AdminUsersPage: React.FC = () => {
 
             {/* Edit User Modal */}
             {editingUser && (
-                <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Editar Usuário" size="lg">
+                <Modal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    title="Editar Usuário"
+                    size="lg"
+                >
                     <div className="space-y-4">
-                        <Input
-                            label="Nome completo"
-                            placeholder="Digite o nome do usuário"
-                            value={editingUser.name}
-                            onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                            required
-                        />
-
-                        <div>
-                            <label className="block text-sm font-medium text-secondary mb-2">Tipo de usuário</label>
-                            <select
-                                value={editingUser.type}
-                                onChange={(e) => setEditingUser({ ...editingUser, type: e.target.value as "user" | "admin" })}
-                                className="w-full px-3 py-2 bg-surface text-primary rounded-lg border border-custom focus:border-primary transition-colors duration-200 focus-ring"
-                            >
-                                <option value="user">Usuário Comum</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
+                        {/* ...inputs... */}
 
                         <div className="flex justify-between pt-4">
                             <div className="flex space-x-2">
-                                <Button variant="danger" onClick={() => handleDeleteUser(editingUser)}>
+                                <Button
+                                    variant="danger"
+                                    onClick={() => handleDeleteUser(editingUser)}
+                                    disabled={editingUser.type === "admin" && adminCount <= 1}
+                                    title={
+                                        editingUser.type === "admin" && adminCount <= 1
+                                            ? "Não é possível excluir o único administrador do sistema."
+                                            : ""
+                                    }
+                                >
                                     Excluir Usuário
                                 </Button>
                             </div>
@@ -492,6 +498,7 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
                 </Modal>
             )}
+
 
             {/* Confirm Modal */}
             <ConfirmModal
