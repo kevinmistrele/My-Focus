@@ -10,12 +10,6 @@ const swaggerDocument = {
         version: "1.0.0",
         description: "API do sistema MyFocus - Gestão Pessoal e Produtividade.",
     },
-    servers: [
-        {
-            url: "http://localhost:3333",
-            description: "Ambiente de desenvolvimento",
-        },
-    ],
     components: {
         securitySchemes: {
             BearerAuth: {
