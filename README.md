@@ -1,147 +1,118 @@
-# 🧠 MyFocus
+# MyFocus
 
-MyFocus é uma aplicação de produtividade pessoal desenvolvida para ajudar usuários a organizarem sua rotina de forma prática e eficiente. Com funcionalidades como Pomodoro, tarefas, metas e mais, o sistema combina simplicidade, design moderno e recursos úteis em um só lugar.
+![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat&logo=prisma&logoColor=white)
 
----
+> Personal productivity app — Pomodoro, tasks, habits, goals, mood log, and notes in one place.
 
-## 📌 Descrição
+<!-- Add a screenshot or GIF here: ![MyFocus Preview](docs/images/preview.png) -->
 
-O MyFocus é uma aplicação fullstack com estrutura em monorepo, contendo frontend em React e backend em Node.js. Seu objetivo é centralizar o gerenciamento da vida pessoal do usuário, com foco em produtividade, saúde mental e bem-estar.
+## About
 
----
+MyFocus is a fullstack productivity platform built as an npm monorepo with a React frontend and an Express + Prisma backend. It centralizes personal routine management with focus on productivity, mental health, and well-being.
 
-## 🚀 Tecnologias Utilizadas
+## Features
+
+- JWT authentication with email-based password recovery
+- Pomodoro sessions with history
+- Task list with filters and status
+- Habit tracker with streaks
+- Personal goals with full CRUD
+- Sticky notes with pinning and color coding
+- Mood log (MoodLog)
+- Personalized user statistics
+- Profile image upload
+
+## Tech Stack
 
 ### Frontend
-- **React**
-- **Vite**
-- **TailwindCSS**
-- **TypeScript**
-- **Sonner** (toasts)
+| Technology | Purpose |
+|---|---|
+| React + TypeScript | UI framework |
+| Vite | Build tool |
+| Tailwind CSS | Styling |
+| Sonner | Toast notifications |
 
 ### Backend
-- **Express**
-- **Prisma ORM**
-- **PostgreSQL**
-- **JWT** (autenticação)
-- **Nodemailer** (e-mails)
+| Technology | Purpose |
+|---|---|
+| Express | HTTP server |
+| Prisma ORM | Database access |
+| PostgreSQL | Database |
+| JWT | Authentication |
+| Nodemailer | Email delivery |
 
----
+## Getting Started
 
-## ⚙️ Como Rodar o Projeto
+### Prerequisites
 
-### 1. Clone o repositório
+- Node.js 18+
+- PostgreSQL instance running locally or in the cloud
+
+### Installation and Setup
 
 ```bash
-git clone https://github.com/seu-usuario/myfocus.git
-cd myfocus
+git clone https://github.com/kevinmistrele/My-Focus.git
+cd My-Focus
+npm run setup
 ```
 
-### 2. Configure as variáveis de ambiente
+The `setup` script installs all dependencies, runs Prisma migrations, and generates the Prisma client.
 
-Crie dois arquivos `.env`:
+### Environment Variables
 
-#### 📁 apps/backend/.env
+#### `apps/backend/.env`
+
 ```env
-DATABASE_URL="postgresql://seu_usuario:senha@localhost:5432/myfocus?schema=public"
-JWT_SECRET="sua_chave_secreta"
-EMAIL_FROM="seu@email.com"
-EMAIL_PASS="senha_do_app_email"
+DATABASE_URL="postgresql://user:password@localhost:5432/myfocus?schema=public"
+JWT_SECRET="your_jwt_secret"
+EMAIL_FROM="your@email.com"
+EMAIL_PASS="your_app_password"
 ```
 
-#### 📁 apps/frontend/.env
+#### `apps/frontend/.env`
+
 ```env
 VITE_API_URL=http://localhost:4000
 ```
 
-### 3. Instale as dependências e gere os arquivos do Prisma
-
-```bash
-npm install
-```
-
-### 4. Rode a aplicação em modo desenvolvimento
+### Running
 
 ```bash
 npm run dev
 ```
 
-Acesse:
-- **Frontend:** http://localhost:5173  
-- **Backend:** http://localhost:4000
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:4000 |
 
----
+## Available Scripts
 
-## 🗂️ Estrutura de Pastas
+| Script | Description |
+|---|---|
+| `npm run dev` | Start frontend and backend concurrently |
+| `npm run dev:front` | Start frontend only |
+| `npm run dev:back` | Start backend only |
+| `npm run build:all` | Build both apps |
+| `npm run prisma:migrate` | Run database migrations |
+| `npm run prisma:studio` | Open Prisma Studio |
+| `npm run setup` | Full setup from scratch |
+
+## Project Structure
 
 ```
 myfocus/
-│
 ├── apps/
-│   ├── frontend/     # Interface com React + Vite
-│   └── backend/      # API com Express + Prisma
-│
-├── package.json      # Scripts globais
+│   ├── frontend/     # React + Vite
+│   └── backend/      # Express + Prisma
+├── package.json      # Root scripts and workspaces
 └── README.md
 ```
 
----
+## Author
 
-## 📦 Scripts Disponíveis
-
-```json
-"scripts": {
-  "install:all": "npm --prefix apps/frontend install && npm --prefix apps/backend install",
-  "postinstall": "npm run install:all && npm --prefix apps/backend run generate",
-  "dev": "concurrently \"npm run dev:back\" \"npm run dev:front\"",
-  "dev:front": "npm --prefix apps/frontend run dev",
-  "dev:back": "npm --prefix apps/backend run dev",
-  "build:all": "npm --prefix apps/frontend run build && npm --prefix apps/backend run build",
-  "prod": "concurrently \"npm run prod:back\" \"npm run prod:front\"",
-  "prod:front": "npm --prefix apps/frontend run prod",
-  "prod:back": "npm --prefix apps/backend run prod"
-}
-```
-
----
-
-## 🔐 .env.example
-
-### Backend (`apps/backend/.env`)
-```env
-DATABASE_URL="postgresql://seu_usuario:senha@localhost:5432/myfocus?schema=public"
-JWT_SECRET="sua_chave_secreta"
-EMAIL_FROM="seu@email.com"
-EMAIL_PASS="senha_do_app_email"
-```
-
-### Frontend (`apps/frontend/.env`)
-```env
-VITE_API_URL=http://localhost:4000
-```
-
----
-
-## ✅ Funcionalidades
-
-- Login e registro de usuários com JWT
-- Sessões Pomodoro com histórico
-- Lista de tarefas com filtros e status
-- Sistema de hábitos com streak
-- Metas pessoais com CRUD completo
-- Anotações com fixação e cores
-- Registro de humor (MoodLog)
-- Estatísticas personalizadas do usuário
-- Envio de e-mail para recuperação de senha
-- Upload de imagem de perfil
-
----
-
-## 🎯 Objetivo
-
-Ajudar pessoas a organizarem melhor seu tempo, tarefas e hábitos, promovendo o foco e o bem-estar, por meio de uma ferramenta digital intuitiva e responsiva.
-
----
-
-
-
+Made by [Kevin Mistrele](https://github.com/kevinmistrele)
